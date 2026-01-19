@@ -115,7 +115,7 @@
             </div>
 
             <!-- Card 3 Removed -->
-
+            
             <!-- Card 4 -->
             <div
                 class="md:col-span-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-3xl p-8 flex items-center justify-between text-white shadow-lg hover:shadow-pink-500/40 transition-all cursor-pointer"
