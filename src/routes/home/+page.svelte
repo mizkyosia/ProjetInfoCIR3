@@ -1,4 +1,6 @@
 <script>
+    import Export from '$lib/Export.svelte';
+
     // Placeholder data for the sidebar items
     const sidebarItems = [
         { icon: '🎨', label: 'Design' },
@@ -50,7 +52,7 @@
         <!-- Top Bar -->
         <header class="h-14 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm flex-shrink-0">
             <div class="flex items-center space-x-4">
-                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
+                <Export />
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
                 <div class="h-4 w-[1px] bg-white/30"></div>
                 <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
@@ -64,33 +66,33 @@
                 <button class="bg-white/20 hover:bg-white/30 p-2 rounded-full">
                      <span>➕</span>
                 </button>
-                <button class="bg-white text-indigo-700 font-bold py-1.5 px-4 rounded hover:bg-gray-100">
-                    Share
-                </button>
             </div>
         </header>
 
         <!-- Canvas Container -->
-        <div class="flex-1 relative overflow-auto flex items-center justify-center p-10 bg-gray-200">
-            
-            <!-- The White Board / Page -->
-            <div class="bg-white w-[800px] h-[450px] shadow-xl relative group">
-                <!-- Content Placeholder -->
-                
-            </div>
+        
+<div class="flex-1 relative overflow-auto flex items-center justify-center p-10 bg-gray-200">
+    
+    <!-- The White Board / Page -->
+    <div
+        id="presentation"
+        class="bg-white w-[800px] h-[450px] shadow-xl relative group overflow-hidden flex items-center justify-center"
+    >
+        <h1 class="text-5xl font-bold text-indigo-700">Slide de Test</h1>
+    </div>
 
-            <!-- Footer / Zoom Controls -->
-            <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
-                <div class="h-4 w-[1px] bg-gray-300"></div>
-                <div class="flex items-center space-x-2">
-                        <button class="hover:text-black">-</button>
-                        <span>56%</span>
-                        <button class="hover:text-black">+</button>
-                </div>
-                <div class="h-4 w-[1px] bg-gray-300"></div>
-                <span class="cursor-pointer hover:bg-gray-100 p-1 rounded">⤢</span>
-            </div>
-
+    <!-- Footer / Zoom Controls -->
+    <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
+        <div class="h-4 w-[1px] bg-gray-300"></div>
+        <div class="flex items-center space-x-2">
+            <button class="hover:text-black">-</button>
+            <span>56%</span>
+            <button class="hover:text-black">+</button>
         </div>
+        <div class="h-4 w-[1px] bg-gray-300"></div>
+        <span class="cursor-pointer hover:bg-gray-100 p-1 rounded">⤢</span>
+    </div>
+</div>
+
     </main>
 </div>
