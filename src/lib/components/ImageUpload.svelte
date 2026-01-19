@@ -12,5 +12,5 @@
         // store imageId in your presentation JSON
     }
 </script>
-
+ 
 <input type="file" accept="image/*" onchange={onUpload} />
