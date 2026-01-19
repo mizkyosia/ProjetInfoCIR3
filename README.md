@@ -1,38 +1,27 @@
-# sv
+# Projet ISEN3 Mi-année
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+- [Projet ISEN3 Mi-année](#projet-isen3-mi-année)
+  - [1. Installation](#1-installation)
+  - [2. Exécution](#2-exécution)
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 1. Installation
 
+Ce projet requiert avec [NodeJS](https://nodejs.org), et est basé sur les librairies suivantes :
+- [Svelte](https://svelte.dev) : Framework HMTL et JavaScript simple, basé sur des variables réactives et des 
+- [SvelteFlow](https://svelteflow.dev) (Xyflow) : Librairie pour afficher des flowcharts
+- [TailwindCSS](https://tailwindcss.com/) : Librairie CSS permettant d'utiliser les noms de classe pour appliquer des styles plus rapidement
+
+## 2. Exécution
+
+Pour lancer le projet, il faut d'abord installer les dépendences (librairires). Vous pouvez utiliser n'importe quel package manager de NodeJS pour cela, par exemple npm :
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+npm install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
+Ensuite, pour lancer le projet, faites la commande suivante : 
 ```sh
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Le serveur restera en route tant que la commande tourne
