@@ -1,30 +1,40 @@
 <script lang="ts">
   import { tick } from 'svelte';
 
+  // --- PROPS ---
+  // Position initiale et dimensions par défaut
   export let x = 100, y = 100;
   export let initRows = 3;
   export let initCols = 3;
+  // Callback pour supprimer le tableau entier
   export let onDelete: () => void = () => {};
 
-  // --- ÉTAT ---
+  // --- ÉTAT INTERNE ---
+  // On stocke les tailles individuellement pour permettre le redimensionnement
   let colWidths = Array(initCols).fill(100);
   let rowHeights = Array(initRows).fill(40);
   let tableContainer: HTMLElement;
 
+  // Calcul dynamique de la largeur totale pour le conteneur principal
   $: totalWidth = colWidths.reduce((a, b) => a + b, 0);
 
-  // --- ACTION 1 : DRAG & DROP ---
+  // --- ACTION 1 : DÉPLACEMENT (DRAG & DROP) ---
+  // Cette action Svelte rend l'élément conteneur déplaçable
   function draggable(node: HTMLElement) {
     let startX = 0, startY = 0;
 
     function handleMousedown(e: MouseEvent) {
-      // On ignore le drag si on est sur le texte ou un bouton
+      // IMPORTANT : On annule le déplacement si :
+      // 1. C'est un clic droit (e.button === 2) -> pour le menu contextuel
+      // 2. On clique sur le texte (contenteditable) ou un bouton de redimensionnement
       if (e.button === 2 || (e.target as HTMLElement).closest('[contenteditable], button')) return;
       
       e.preventDefault();
+      // On calcule le décalage entre la souris et le coin du tableau
       startX = e.clientX - x;
       startY = e.clientY - y;
 
+      // On attache les événements à 'window' pour ne pas perdre le drag si la souris sort vite du tableau
       window.addEventListener('mousemove', handleMousemove);
       window.addEventListener('mouseup', handleMouseup);
     }
@@ -46,33 +56,38 @@
     };
   }
 
-  // --- ACTION 2 : COMPORTEMENT CELLULE (Tab, Entrée, Focus) ---
+  // --- ACTION 2 : COMPORTEMENT DES CELLULES ---
+  // Gère l'édition, le focus et la touche TAB
   function cellBehavior(node: HTMLElement, { r, c }: { r: number, c: number }) {
     
-    // Empêche le drag du tableau quand on sélectionne du texte
+    // Si on clique DANS une cellule, on arrête la propagation pour ne pas déclencher le drag du tableau
     function handleMousedown(e: MouseEvent) {
       e.stopPropagation();
     }
 
-    // Mise à jour de la hauteur de ligne quand on écrit (Auto-grow)
+    // Auto-grow : La hauteur de la ligne s'adapte au contenu
     function handleInput() {
       const currentHeight = node.getBoundingClientRect().height;
-      // Si le texte est plus grand que la hauteur définie, on agrandit la ligne
+      // On augmente seulement (pour éviter que ça saute), on ne réduit pas automatiquement ici
       if (currentHeight > rowHeights[r]) {
         rowHeights[r] = currentHeight;
       }
     }
 
-    // Gestion de la Tabulation
+    // Navigation avancée au clavier
     async function handleKeydown(e: KeyboardEvent) {
+      // Si on appuie sur TAB dans la toute dernière cellule
       if (e.key === 'Tab') {
         const isLastRow = r === rowHeights.length - 1;
         const isLastCol = c === colWidths.length - 1;
 
         if (isLastRow && isLastCol && !e.shiftKey) {
-          e.preventDefault();
-          rowHeights = [...rowHeights, 40];
-          await tick();
+          e.preventDefault(); // On empêche de sortir du tableau
+          rowHeights = [...rowHeights, 40]; // Ajout nouvelle ligne
+          
+          await tick(); // On attend que Svelte mette à jour le DOM
+          
+          // On force le focus sur la première cellule de la nouvelle ligne
           const nextR = r + 1;
           const nextCell = tableContainer.querySelector(`[data-coord="${nextR}-0"]`) as HTMLElement;
           if (nextCell) nextCell.focus();
@@ -93,12 +108,13 @@
     };
   }
 
-  // --- ACTION 3 : REDIMENSIONNEMENT ---
+  // --- ACTION 3 : REDIMENSIONNEMENT (RESIZABLE) ---
+  // Utilisé par les barres invisibles sur les bords des cellules
   function resizable(node: HTMLElement, params: { type: 'col' | 'row', index: number }) {
     let startVal = 0, startMouse = 0;
 
     function handleMousedown(e: MouseEvent) {
-      e.stopPropagation();
+      e.stopPropagation(); // Empêche de draguer le tableau en redimensionnant
       startMouse = params.type === 'col' ? e.clientX : e.clientY;
       startVal = params.type === 'col' ? colWidths[params.index] : rowHeights[params.index];
       
@@ -107,9 +123,12 @@
     }
 
     function handleMousemove(e: MouseEvent) {
+      // Calcul du delta de mouvement
       const delta = (params.type === 'col' ? e.clientX : e.clientY) - startMouse;
+      // Math.max(20, ...) empêche de réduire une cellule à moins de 20px
       const newVal = Math.max(20, startVal + delta);
       
+      // Mise à jour réactive du tableau de tailles
       if (params.type === 'col') {
         colWidths[params.index] = newVal;
       } else {
@@ -128,22 +147,30 @@
     };
   }
 
-  // --- MENU & UTILITAIRES ---
+  // --- LOGIQUE DU MENU CONTEXTUEL ---
   let showMenu = false, menuX = 0, menuY = 0;
 
   function openMenu(e: MouseEvent) {
-    e.preventDefault(); e.stopPropagation();
-    showMenu = true; menuX = e.clientX; menuY = e.clientY;
+    e.preventDefault(); // Empêche le menu natif du navigateur
+    e.stopPropagation();
+    showMenu = true; 
+    menuX = e.clientX; 
+    menuY = e.clientY;
   }
   
+  // Ferme le menu si on clique ailleurs ou si on fait Echap
   function handleWindowClick() { showMenu = false; }
   function handleContainerKey(e: KeyboardEvent) { if (e.key === 'Escape') showMenu = false; }
 
+  // Gestion des ajouts/suppressions de lignes/colonnes
   function modify(action: 'addR' | 'delR' | 'addC' | 'delC') {
     if (action === 'addR') rowHeights = [...rowHeights, 40];
     if (action === 'delR' && rowHeights.length > 1) rowHeights = rowHeights.slice(0, -1);
+    
+    // Ajout colonne : on ajoute une largeur par défaut de 100px
     if (action === 'addC') colWidths = [...colWidths, 100];
     if (action === 'delC' && colWidths.length > 1) colWidths = colWidths.slice(0, -1);
+    
     showMenu = false;
   }
 </script>
