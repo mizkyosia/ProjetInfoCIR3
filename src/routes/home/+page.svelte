@@ -20,7 +20,7 @@ let pan = $state({ x: 0, y: 0 });
 let boardElement; // Reference to the board div
 
 // Drawing State
-let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
+let drawingTool = $state(null); // 'rectangle' | 'circle' | etc
 let isDrawing = $state(false);
 let startPoint = $state({ x: 0, y: 0 });
 let currentShapeId = $state(null);
