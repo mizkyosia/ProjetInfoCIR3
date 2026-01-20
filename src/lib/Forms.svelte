@@ -1,3 +1,18 @@
+<script module>
+    export function createShape(type) {
+        return {
+            shapeType: type,
+            width: 0, 
+            height: 0, 
+            rotation: 0,
+            fill: '#e0e7ff', 
+            stroke: '#4338ca', 
+            strokeWidth: 2, 
+            opacity: 1
+        };
+    }
+</script>
+
 <script lang="ts">
 	/**
 	 * Forms.svelte
@@ -101,11 +116,25 @@
 
             {:else if data.shapeType === 'arrow'}
                 {@const midY = data.height / 2}
-                {@const headW = Math.min(data.width, data.height) * 0.4} 
-                {@const headH = Math.min(data.width * 0.5, data.height * 0.8)} 
+                {@const stemThickness = data.height * 0.4}
+                {@const headLength = Math.min(data.width, data.height)}
                 
-                <line x1="0" y1={midY} x2={data.width - headW} y2={midY} stroke={data.stroke} stroke-width={data.strokeWidth} stroke-linecap="round" />
-                <polygon points={`${data.width - headW},${midY - headH/2} ${data.width},${midY} ${data.width - headW},${midY + headH/2}`} fill={data.stroke} />
+                <polygon 
+                    points={`
+                        0,${midY - stemThickness/2} 
+                        ${data.width - headLength},${midY - stemThickness/2} 
+                        ${data.width - headLength},${0} 
+                        ${data.width},${midY} 
+                        ${data.width - headLength},${data.height} 
+                        ${data.width - headLength},${midY + stemThickness/2} 
+                        0,${midY + stemThickness/2}
+                    `} 
+                    fill={data.fill} 
+                    stroke={data.stroke} 
+                    stroke-width={data.strokeWidth} 
+                    stroke-linejoin="round"
+                    vector-effect="non-scaling-stroke"
+                />
             {/if}
         </g>
     </svg>

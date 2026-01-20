@@ -1,10 +1,23 @@
+<script context="module">
+    export function createQuizzFromData(dragData) {
+        // Here we could validate the data
+        return {
+            question: dragData.question || "New Question",
+            options: dragData.options || ["Option 1"],
+            correctAnswerIndex: dragData.correctAnswerIndex || 0
+        };
+    }
+</script>
+
 <script>
     export let mode = 'play'; // 'play' | 'edit'
     
-    // Default values for edit mode
-    export let question = "Quelle est la couleur du cheval blanc d'Henri IV ?";
-    export let options = ["Blanc", "Noir", "Gris"];
-    export let correctAnswerIndex = 0;
+    // Unified data object
+    export let data = {
+        question: "",
+        options: [],
+        correctAnswerIndex: 0
+    };
 
     let selectedIndex = null;
     let issubmitted = false;
@@ -29,22 +42,19 @@
 
     // --- Edit Logic ---
     function addOption() {
-        options = [...options, `Option ${options.length + 1}`];
+        data.options = [...data.options, `Option ${data.options.length + 1}`];
     }
     
     function removeOption(index) {
-        options = options.filter((_, i) => i !== index);
-        if (correctAnswerIndex === index) correctAnswerIndex = 0; 
-        if (correctAnswerIndex > index) correctAnswerIndex--;
+        data.options = data.options.filter((_, i) => i !== index);
+        if (data.correctAnswerIndex === index) data.correctAnswerIndex = 0; 
+        if (data.correctAnswerIndex > index) data.correctAnswerIndex--;
     }
 
     function handleDragStart(event) {
-        const data = {
-            question,
-            options,
-            correctAnswerIndex
-        };
-        event.dataTransfer.setData('application/json', JSON.stringify({ type: 'quizz', data }));
+        // Clone data to avoid reference issues
+        const dropPayload = { ...data };
+        event.dataTransfer.setData('application/json', JSON.stringify({ type: 'quizz', data: dropPayload }));
         event.dataTransfer.effectAllowed = 'copy';
     }
 </script>
@@ -56,24 +66,24 @@
         <div class="field-group">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label>Question</label>
-            <textarea bind:value={question} rows="3"></textarea>
+            <textarea bind:value={data.question} rows="3"></textarea>
         </div>
 
         <div class="field-group">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label>Réponses (Cochez la bonne)</label>
             <div class="options-list">
-                {#each options as option, i}
+                {#each data.options as option, i}
                     <div class="option-row">
                         <input 
                             type="radio" 
                             name="correct-answer" 
-                            checked={correctAnswerIndex === i} 
-                            on:change={() => correctAnswerIndex = i}
+                            checked={data.correctAnswerIndex === i} 
+                            on:change={() => data.correctAnswerIndex = i}
                         >
                         <input 
                             type="text" 
-                            bind:value={options[i]}
+                            bind:value={data.options[i]}
                         >
                         <button class="delete-btn" on:click={() => removeOption(i)}>✕</button>
                     </div>
@@ -97,15 +107,15 @@
     </div>
 {:else}
     <div class="quiz-panel">
-        <h3>{question}</h3>
+        <h3>{data.question}</h3>
 
         <div class="options-container">
-            {#each options as option, index}
+            {#each data.options as option, index}
                 <button
                     class="option-btn"
                     class:selected={selectedIndex === index}
-                    class:correct={issubmitted && index === correctAnswerIndex}
-                    class:wrong={issubmitted && selectedIndex === index && index !== correctAnswerIndex}
+                    class:correct={issubmitted && index === data.correctAnswerIndex}
+                    class:wrong={issubmitted && selectedIndex === index && index !== data.correctAnswerIndex}
                     on:click={() => selectOption(index)}
                     disabled={issubmitted}
                 >
@@ -125,10 +135,10 @@
                 </button>
             {:else}
                 <div class="result-message">
-                    {#if selectedIndex === correctAnswerIndex}
+                    {#if selectedIndex === data.correctAnswerIndex}
                         <span class="success">Correct ! 🎉</span>
                     {:else}
-                        <span class="error">Incorrect. La bonne réponse était : {options[correctAnswerIndex]}</span>
+                        <span class="error">Incorrect. La bonne réponse était : {data.options[data.correctAnswerIndex]}</span>
                     {/if}
                 </div>
                 <button class="reset-btn" on:click={resetQuiz}>Recommencer</button>

@@ -9,9 +9,10 @@
         { icon: '📂', label: 'Projects' },
     ];
 
-import Quizz from '$lib/Quizz.svelte';
-import Forms from '$lib/Forms.svelte';
+import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
+import Forms, { createShape } from '$lib/Forms.svelte';
 
+let isSidebarOpen = $state(true);
 let openPannel = $state("")
 let canvasElements = $state([]);
 let zoom = $state(1);
@@ -40,17 +41,7 @@ function handleMouseDown(event) {
     startPoint = { x, y };
 
     // Create initial shape
-    const isArrow = drawingTool === 'arrow';
-    const newShapeData = {
-        shapeType: drawingTool,
-        width: 0, 
-        height: 0, 
-        rotation: 0,
-        fill: isArrow ? 'transparent' : '#e0e7ff', 
-        stroke: '#4338ca', 
-        strokeWidth: isArrow ? 4 : 2, 
-        opacity: 1
-    };
+    const newShapeData = createShape(drawingTool);
 
     const newId = Date.now();
     currentShapeId = newId;
@@ -97,14 +88,22 @@ function handleDrop(event) {
     
     try {
         const { type, data } = JSON.parse(dataString);
-        if (type !== 'quizz') return;
+        
+        let finalData = data;
+        // Validate/Normalize data based on type
+        if (type === 'quizz') {
+             finalData = createQuizzFromData(data);
+        } else if (type !== 'quizz') {
+             // Unknown type (Forms usage is different, handled by drawing)
+             return;
+        }
 
         const canvasRect = event.currentTarget.getBoundingClientRect();
         // Adjust coordinates based on zoom level
         const x = (event.clientX - canvasRect.left) / zoom;
         const y = (event.clientY - canvasRect.top) / zoom;
         
-        canvasElements = [...canvasElements, { id: Date.now(), type, data, x, y }];
+        canvasElements = [...canvasElements, { id: Date.now(), type, data: finalData, x, y }];
     } catch (e) {
         console.error("Error parsing dropped data", e);
     }
@@ -165,27 +164,37 @@ function resetView() {
 
 
 
-<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
     
-    <!-- Left Sidebar (Navigation) -->
-    <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0">
-        <!-- Burger Menu / Logo placeholder -->
-        <div class="mb-6 p-2 cursor-pointer hover:bg-gray-800 rounded">
-            <div class="w-6 h-0.5 bg-white mb-1"></div>
-            <div class="w-6 h-0.5 bg-white mb-1"></div>
-            <div class="w-6 h-0.5 bg-white"></div>
-        </div>
+    <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div 
+        class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
+        class:hover:bg-gray-800={isSidebarOpen}
+        class:hover:bg-gray-300={!isSidebarOpen}
+        onclick={() => isSidebarOpen = !isSidebarOpen}
+        title="Toggle Menu"
+    >
+        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
+        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
+        <div class="w-6 h-0.5 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
+    </div>
 
-        <!-- Nav Items -->
-        <nav class="flex-1 w-full space-y-2">
-            {#each sidebarItems as item, i}
-                <button onclick={() => openPannel = item.label} class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${openPannel === item.label ? 'bg-gray-800 border-l-4 border-cyan-400' : ''}`}>
-                    <span class="text-xl mb-1">{@html item.icon}</span>
-                    <span class="text-xs font-medium">{item.label}</span>
-                </button>
-            {/each}
-        </nav>
-    </aside>
+    <!-- Left Sidebar (Navigation) -->
+    {#if isSidebarOpen}
+        <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20">
+            <!-- Nav Items -->
+            <nav class="flex-1 w-full space-y-2">
+                {#each sidebarItems as item, i}
+                    <button onclick={() => openPannel = item.label} class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${openPannel === item.label ? 'bg-gray-800 border-l-4 border-cyan-400' : ''}`}>
+                        <span class="text-xl mb-1">{@html item.icon}</span>
+                        <span class="text-xs font-medium">{item.label}</span>
+                    </button>
+                {/each}
+            </nav>
+        </aside>
+    {/if}
     {#if openPannel === "Quizz"}
         <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
             <Quizz mode="edit" />
@@ -236,9 +245,7 @@ function resetView() {
                          >
                             <Quizz 
                                 mode="play"
-                                question={element.data.question} 
-                                options={element.data.options} 
-                                correctAnswerIndex={element.data.correctAnswerIndex} 
+                                data={element.data}
                             />
                          </div>
                     {:else if element.type === 'shape'}
