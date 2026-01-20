@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Tableau from '$lib/tableau.svelte';
+  import Tableau from '$lib/Tableau.svelte';
   // import Toolbar from "$lib/Toolbar.svelte";
 
   // --- Gestion du sélecteur ---

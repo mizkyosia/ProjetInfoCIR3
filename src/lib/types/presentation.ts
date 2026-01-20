@@ -21,6 +21,7 @@ export type Slide = {
 export type Element =
   | TextElement
   | ImageElement
+  | QuizzElement
 
 type BaseElement = {
   id: string
@@ -30,6 +31,11 @@ type BaseElement = {
   height: number
   rotation: number
   zIndex: number
+  fillColor: string
+  borderColor: string
+  borderThickness: number
+  borderStyle: "solid" | "dotted" | "dashed",
+
 }
 
 export type TextElement = BaseElement & {
@@ -42,4 +48,11 @@ export type TextElement = BaseElement & {
 export type ImageElement = BaseElement & {
   type: 'image'
   assetId: string
+}
+
+export type QuizzElement = BaseElement & {
+  type: 'quizz'
+  options: string[]
+  question: string
+  correctAnswerIndex: number
 }
