@@ -12,6 +12,11 @@
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
 
+
+let projectTitle = $state("Sans nom");
+let projectResolution = $state("1920x1080");
+ 
+
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
     /**
@@ -20,6 +25,9 @@ let openPannel = $state("")
 let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
+    /**
+     * @type {HTMLDivElement}
+     */
 let boardElement; // Reference to the board div
 
 // Drawing State
@@ -225,7 +233,10 @@ function toggleSidebar() {
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
                 <div class="h-4 w-px bg-white/30"></div>
-                <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
+                <div class="flex items-center text-sm opacity-90">
+                    <input bind:value={projectTitle} class="bg-transparent border-none hover:bg-white/10 focus:bg-white/20 focus:outline-none rounded px-1 transition-colors w-auto" style="width: {projectTitle.length + 1}ch" />
+                    <span class="ml-2">{projectResolution}</span>
+                </div>
             </div>
         </header>
 
