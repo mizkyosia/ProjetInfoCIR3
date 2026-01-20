@@ -45,7 +45,7 @@ awesome.min.css">
 <div class="bg-white border-b border-gray-300 shadow-sm p-3 flex items-center space-x-4">
 
     <!-- Police -->
-    <select bind:value={selectedFont} on:change={applyFont}
+    <select bind:value={selectedFont} onchange={applyFont}
         class="border rounded px-2 py-1 text-sm">
         <option>Arial</option>
         <option>Times New Roman</option>
@@ -55,7 +55,7 @@ awesome.min.css">
     </select>
 
     <!-- Taille -->
-    <select bind:value={fontSize} on:change={applySize}
+    <select bind:value={fontSize} onchange={applySize}
         class="border rounded px-2 py-1 text-sm w-20">
         <option value="12">12px</option>
         <option value="16">16px</option>
@@ -65,18 +65,18 @@ awesome.min.css">
     </select>
 
     <!-- Style -->
-    <button on:click={() => applyCommand("bold")} class="px-2 py-1 border rounded">B</button>
-    <button on:click={() => applyCommand("italic")} class="px-2 py-1 border rounded">I</button>
-    <button on:click={() => applyCommand("underline")} class="px-2 py-1 border rounded">U</button>
+    <button onclick={() => applyCommand("bold")} class="px-2 py-1 border rounded">B</button>
+    <button onclick={() => applyCommand("italic")} class="px-2 py-1 border rounded">I</button>
+    <button onclick={() => applyCommand("underline")} class="px-2 py-1 border rounded">U</button>
 
     <!-- Alignement -->
-    <button on:click={() => applyAlign("Left")} class="px-2 py-1 border rounded">←</button>
-    <button on:click={() => applyAlign("Center")} class="px-2 py-1 border rounded">↔</button>
-    <button on:click={() => applyAlign("Right")} class="px-2 py-1 border rounded">→</button>
-    <button on:click={() => applyAlign("Full")} class="px-2 py-1 border rounded">≡</button>
+    <button onclick={() => applyAlign("Left")} class="px-2 py-1 border rounded">←</button>
+    <button onclick={() => applyAlign("Center")} class="px-2 py-1 border rounded">↔</button>
+    <button onclick={() => applyAlign("Right")} class="px-2 py-1 border rounded">→</button>
+    <button onclick={() => applyAlign("Full")} class="px-2 py-1 border rounded">≡</button>
 
     <!-- Couleur -->
-    <input type="color" bind:value={textColor} on:input={applyColor}
+    <input type="color" bind:value={textColor} oninput={applyColor}
         class="w-10 h-8 border rounded" />
 </div>
 

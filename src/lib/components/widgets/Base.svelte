@@ -1,3 +1,7 @@
+<script module lang="ts">
+    export let selectedElement: (() => string) | undefined;
+</script>
+
 <script lang="ts">
     import type { BaseElement } from "$lib/types/presentation";
 
@@ -21,15 +25,15 @@
 
     let el: HTMLDivElement,
         startX = 0,
-        startY = 0,
-        startRotation = 0;
+        startY = 0;
     let mode: "move" | "resize" | "rotate" | null = null;
 
-    let selected = $state(false);
+    let selected = $state(false),
+        centerX = $state(0),
+        centerY = $state(0);
 
     function startMove(e: PointerEvent) {
         e.stopPropagation();
-        selected = true;
         mode = "move";
         startX = e.clientX;
         startY = e.clientY;
@@ -51,8 +55,13 @@
     function startRotate(e: PointerEvent) {
         e.stopPropagation();
         mode = "rotate";
-        startX = e.clientX;
-        startRotation = rotation;
+
+        let rect = el.getBoundingClientRect();
+
+        centerX = rect.x + rect.width / 2;
+        centerY = rect.y + rect.height / 2;
+
+        console.log(centerX, centerY);
 
         window.addEventListener("pointermove", onPointerMove);
         window.addEventListener("pointerup", onPointerUp);
@@ -79,7 +88,9 @@
         }
 
         if (mode === "rotate") {
-            rotation = startRotation + dx * 0.5;
+            rotation =
+                Math.atan2(e.clientY - centerY, e.clientX - centerX) +
+                Math.PI / 2;
         }
     }
 
@@ -91,26 +102,30 @@
 </script>
 
 <div
-    class="element absolute touch-none select-none box-border"
+    bind:this={el}
+    class="element absolute touch-none select-none box-border origin-center"
     style="
     transform:
       translate({x}px, {y}px)
-      rotate({rotation}deg);
+      rotate({rotation}rad);
     width: {width}px;
     height: {height}px;
   "
     onpointerdown={(e) => {
         e.stopPropagation();
+        if (selectedElement != undefined) selectedElement();
+
+        selectedElement = () => {
+            selected = false;
+            selectedElement = undefined;
+            return id;
+        };
         selected = true;
     }}
 >
     <!-- actual content (NOT draggable) -->
     <div
         class="w-full h-full pointer-events-auto z-10 relative box-border"
-        style="
-    backgound-color: {fillColor};
-    border: {borderThickness}px {borderStyle} {borderColor};
-    border-radius: {borderRadius};"
     >
         {@render children?.()}
     </div>
@@ -130,7 +145,7 @@
 
         <!-- rotate handle -->
         <div
-            class="absolute h-3 w-3 border-2 border-blue-500 rounded-full bg-white -top-7 left-[50%] translate-x-[50%] cursor-grab"
+            class="absolute h-3 w-3 border-2 border-blue-500 rounded-full bg-white -top-7 left-[50%] -translate-x-[50%] cursor-grab"
             onpointerdown={startRotate}
         ></div>
     {/if}

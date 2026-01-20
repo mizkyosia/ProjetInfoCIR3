@@ -235,7 +235,7 @@
 
 <div class="relative">
     <button
-        on:click={toggleShareMenu}
+        onclick={toggleShareMenu}
         class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer text-white"
     >
         File
@@ -246,21 +246,21 @@
             class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 border border-gray-200"
         >
             <button
-                on:click={exportPDF}
+                onclick={exportPDF}
                 class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 first:rounded-t-lg border-b border-gray-100 text-black"
             >
                 <span>📄</span>
                 <span>Export as PDF</span>
             </button>
             <button
-                on:click={exportHTML}
+                onclick={exportHTML}
                 class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black"
             >
                 <span>🌐</span>
                 <span>Export as HTML</span>
             </button>
             <button
-                on:click={sendLink}
+                onclick={sendLink}
                 class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 last:rounded-b-lg text-black"
             >
                 <span>🔗</span>

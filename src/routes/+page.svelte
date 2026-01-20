@@ -55,16 +55,16 @@
             <a
                 href="/home"
                 class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
-                on:mouseenter={() => (isHovered = true)}
-                on:mouseleave={() => (isHovered = false)}
+                onmouseenter={() => (isHovered = true)}
+                onmouseleave={() => (isHovered = false)}
             >
                 Start Designing
             </a>
             <a
                 href="/test"
                 class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
-                on:mouseenter={() => (isHovered = true)}
-                on:mouseleave={() => (isHovered = false)}
+                onmouseenter={() => (isHovered = true)}
+                onmouseleave={() => (isHovered = false)}
             >
                 Test Toolbar
             </a>
