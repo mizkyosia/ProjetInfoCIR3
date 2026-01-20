@@ -1,52 +1,70 @@
-// Action pour gérer le drag et resize des boutons
-export function draggable(node, { onMove, onResize }) {
-    let isDragging = false;
-    let isResizing = false;
-    let startX = 0;
-    let startY = 0;
-    let initialX = 0;
-    let initialY = 0;
-    let initialWidth = 0;
-    let initialHeight = 0;
+const MIN_WIDTH = 50;
+const MIN_HEIGHT = 30;
+const RESIZE_HANDLE_CLASS = 'resize-handle';
 
-    function handleMouseDown(e) {
-        if (e.target.classList.contains('resize-handle')) {
-            isResizing = true;
-        } else {
-            isDragging = true;
-        }
-        startX = e.clientX;
-        startY = e.clientY;
-        initialX = node.offsetLeft;
-        initialY = node.offsetTop;
-        initialWidth = node.offsetWidth;
-        initialHeight = node.offsetHeight;
+type DraggableOptions = {
+    onMove: (x: number, y: number) => void;
+    onResize: (width: number, height: number) => void;
+};
+
+type DragState = {
+    isDragging: boolean;
+    isResizing: boolean;
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+    initialWidth: number;
+    initialHeight: number;
+};
+
+export function draggable(node: HTMLElement, { onMove, onResize }: DraggableOptions) {
+    const state: DragState = {
+        isDragging: false,
+        isResizing: false,
+        startX: 0,
+        startY: 0,
+        initialX: 0,
+        initialY: 0,
+        initialWidth: 0,
+        initialHeight: 0
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        state.isResizing = target.classList.contains(RESIZE_HANDLE_CLASS);
+        state.isDragging = !state.isResizing;
+
+        state.startX = e.clientX;
+        state.startY = e.clientY;
+        state.initialX = node.offsetLeft;
+        state.initialY = node.offsetTop;
+        state.initialWidth = node.offsetWidth;
+        state.initialHeight = node.offsetHeight;
 
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
-    }
+    };
 
-    function handleMouseMove(e) {
-        if (isDragging) {
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            onMove(Math.max(0, initialX + deltaX), Math.max(0, initialY + deltaY));
-        }
-        if (isResizing) {
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            const newWidth = Math.max(50, initialWidth + deltaX);
-            const newHeight = Math.max(30, initialHeight + deltaY);
+    const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - state.startX;
+        const deltaY = e.clientY - state.startY;
+
+        if (state.isDragging) {
+            onMove(Math.max(0, state.initialX + deltaX), Math.max(0, state.initialY + deltaY));
+        } else if (state.isResizing) {
+            const newWidth = Math.max(MIN_WIDTH, state.initialWidth + deltaX);
+            const newHeight = Math.max(MIN_HEIGHT, state.initialHeight + deltaY);
             onResize(newWidth, newHeight);
         }
-    }
+    };
 
-    function handleMouseUp() {
-        isDragging = false;
-        isResizing = false;
+    const handleMouseUp = () => {
+        state.isDragging = false;
+        state.isResizing = false;
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-    }
+    };
 
     node.addEventListener('mousedown', handleMouseDown);
 
