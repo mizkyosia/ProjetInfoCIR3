@@ -5,7 +5,7 @@
     let currentPage: 'landing' | 'editor' = 'landing';
     let editorContainer: HTMLElement;
 
-    // Structure de données flexible : tu peux ajouter des images, du texte, etc.
+    // Structure de données flexibles.
     let pages = [
         { id: 1, title: "Concept Initial", content: "Focus sur l'expérience utilisateur.", color: "bg-white" },
         { id: 2, title: "Design System", content: "Utilisation de Tailwind CSS et Svelte.", color: "bg-white" }
