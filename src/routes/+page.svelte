@@ -74,6 +74,14 @@
             >
                 Start Designing
             </a>
+            <a
+                href="/test"
+                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
+                on:mouseenter={() => (isHovered = true)}
+                on:mouseleave={() => (isHovered = false)}
+            >
+                Test Toolbar
+            </a>
             <button
                 class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all"
             >
@@ -82,7 +90,9 @@
         </div>
     </header>
 
-    <section class="w-xl flex m-auto flex-wrap items-center justify-center my-8">
+    <section
+        class="w-xl flex m-auto flex-wrap items-center justify-center my-8"
+    >
         {#each presentations as p}
             <PresentationPreview presentation={p} />
         {/each}
@@ -115,7 +125,7 @@
             </div>
 
             <!-- Card 3 Removed -->
-            
+
             <!-- Card 4 -->
             <div
                 class="md:col-span-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-3xl p-8 flex items-center justify-between text-white shadow-lg hover:shadow-pink-500/40 transition-all cursor-pointer"
