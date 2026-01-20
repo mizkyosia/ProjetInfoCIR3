@@ -1,16 +1,19 @@
 <script>
     // Placeholder data for the sidebar items
     const sidebarItems = [
+        { icon: 'T', label: 'Text' },
         { icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>', label: 'Photo' },
         { icon: '<i class="fa fa-square" aria-hidden="true"></i>', label: 'Forms' },
-        { icon: 'T', label: 'Text' },
         { icon: '<i class="fa fa-table" aria-hidden="true"></i>', label: 'Tabs' },
+        { icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>', label: 'Charts' },
         { icon: '❓', label: 'Quizz' },
         { icon: '📂', label: 'Projects' },
+        
     ];
 
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
+import Fullscreen from "$lib/Fullscreen.svelte";
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -18,6 +21,7 @@ let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
 let boardElement; // Reference to the board div
+let fullscreenComponent;
 
 // Drawing State
 let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
@@ -170,7 +174,6 @@ function toggleSidebar() {
 </script>
 
 
-
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
     
     <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
@@ -224,6 +227,12 @@ function toggleSidebar() {
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
             </div>
+            <button 
+                class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
+                onclick={() => fullscreenComponent?.fsToggle()}
+            >
+                <i class="fa fa-arrows-alt" aria-hidden="true"></i> Full screen
+            </button>
         </header>
 
         <!-- Canvas Container -->
@@ -231,11 +240,12 @@ function toggleSidebar() {
             
             <!-- The White Board / Page -->
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+             <Fullscreen let:isFull bind:this={fullscreenComponent}>
             <div 
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
-                class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair" 
+                class="bg-white w-200 h-110 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair fs {isFull ? 'w-screen h-screen' : ''}"
                 style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
                 ondrop={handleDrop} 
                 ondragover={handleDragOver}
@@ -264,6 +274,7 @@ function toggleSidebar() {
                     {/if}
                 {/each}
             </div>
+            </Fullscreen>
 
             <!-- Footer / Zoom Controls -->
             <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
