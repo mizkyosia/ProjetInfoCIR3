@@ -1,23 +1,18 @@
 <script lang="ts">
     import { draggable } from '$lib/maheb/draggable';
-    
     export let button: any;
     export let slideId: string | number;
     export let onNavigate: (id: string | number) => void;
     export let onUpdate: (slideId: string | number, buttonId: string, data: any) => void;
     export let colorClass: string;
-    
     let hasDragged = false;
-    
     const handleMouseDown = () => {
         hasDragged = false;
-    };
-    
+    }; 
     const handleMove = (x: number, y: number) => {
         hasDragged = true;
         onUpdate(slideId, button.id, { x, y });
     };
-    
     const handleResize = (width: number, height: number) => {
         hasDragged = true;
         onUpdate(slideId, button.id, { width, height });

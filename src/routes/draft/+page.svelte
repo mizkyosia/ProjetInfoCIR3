@@ -3,21 +3,17 @@
     import DraggableButton from '$lib/maheb/DraggableButton.svelte';
     import SlideEditor from '$lib/maheb/SlideEditor.svelte';
     
-    // State management
     let currentSlide: number = 1;
     let history: number[] = [1];
     let showEditor: boolean = false;
-    let editingButton: string | null = null;
-    
-    // Form inputs
     let newSlideLabel: string = '';
     let newSlideId: number = 1;
     let newButtonLabel: string = '';
     let newButtonColor: string = 'blue';
     let newButtonDestination: number = 2;
     let selectedSlideForButton: number = 1;
+    let editingButton: string | null = null;
     
-    // Color mapping
     const colorMap: Record<string, string> = {
         red: 'bg-red-500 hover:bg-red-600',
         green: 'bg-green-500 hover:bg-green-600',
@@ -29,75 +25,59 @@
         cyan: 'bg-cyan-500 hover:bg-cyan-600'
     };
     
-    // Navigation
-    const goToSlide = (slideNumber: number | string): void => {
-        const id = typeof slideNumber === 'string' ? parseInt(slideNumber) : slideNumber;
-        const slide = $presentation.slides.find(s => s.id === id);
+    function goToSlide(slideNumber: number): void {
+        const slide = $presentation.slides.find(s => s.id === slideNumber);
         if (slide) {
-            history.push(id);
-            currentSlide = id;
+            history.push(slideNumber);
+            currentSlide = slideNumber;
         }
-    };
+    }
     
-    const goBack = (): void => {
+    function goBack(): void {
         if (history.length > 1) {
             history.pop();
             currentSlide = history[history.length - 1];
         }
-    };
+    }
     
-    // Slide management
-    const addNewSlide = (): void => {
+    function addNewSlide(): void {
         if (newSlideLabel.trim() && newSlideId) {
             presentation.addSlideWithId(newSlideId, newSlideLabel);
             newSlideLabel = '';
             newSlideId = 1;
         }
-    };
+    }
     
-    const deleteSlide = (slideId: number | string): void => {
-        const id = typeof slideId === 'string' ? parseInt(slideId) : slideId;
-        if (confirm(`Supprimer la slide ${id} ?`)) {
-            presentation.deleteSlide(id);
-            if (currentSlide === id) {
+    function addNewButton(): void {
+        presentation.addButton(selectedSlideForButton, newButtonLabel, newButtonColor, newButtonDestination);
+        newButtonLabel = '';
+        newButtonColor = 'blue';
+    }
+    
+    function deleteSlide(slideId: number): void {
+        if (confirm(`Supprimer la slide ${slideId} ?`)) {
+            presentation.deleteSlide(slideId);
+            if (currentSlide === slideId) {
                 currentSlide = 1;
                 history = [1];
             }
         }
-    };
+    }
     
-    // Button management
-    const addNewButton = (): void => {
-        presentation.addButton(selectedSlideForButton, newButtonLabel, newButtonColor, newButtonDestination);
-        newButtonLabel = '';
-        newButtonColor = 'blue';
-    };
-    
-    const handleDeleteButton = (slideId: number | string, buttonId: string): void => {
-        const id = typeof slideId === 'string' ? parseInt(slideId) : slideId;
-        presentation.deleteButton(id, buttonId);
-    };
-    
-    const handleEditButton = (slideId: number | string | null, buttonId: string | null, data: any): void => {
+    function updateButtonWrapper(slideId: number | null, buttonId: string | null, updates: Record<string, any>): void {
         if (buttonId === null) {
             editingButton = null;
         } else {
             editingButton = buttonId;
-            if (slideId && Object.keys(data).length > 0) {
-                const id = typeof slideId === 'string' ? parseInt(slideId) : slideId;
-                presentation.updateButton(id, buttonId, data);
+            if (slideId && Object.keys(updates).length > 0) {
+                presentation.updateButton(slideId, buttonId, updates);
             }
         }
-    };
-    
-    const handleUpdateButton = (slideId: number | string, buttonId: string, data: any): void => {
-        const id = typeof slideId === 'string' ? parseInt(slideId) : slideId;
-        presentation.updateButton(id, buttonId, data);
-    };
+    }
 </script>
 
 <div class="flex h-screen w-full bg-gray-100">
-    <!-- Left Sidebar -->
+    <!-- Left Sidebar: Back Button & Editor Toggle -->
     <aside class="w-20 bg-gray-900 flex flex-col items-center justify-between py-4 flex-shrink-0">
         <button 
             on:click={goBack}
@@ -116,83 +96,85 @@
         </button>
     </aside>
 
-    <!-- Editor Panel -->
+    <!-- Editor Panel (optional right sidebar) -->
     {#if showEditor}
         <aside class="w-80 bg-gray-800 text-white overflow-y-auto flex-shrink-0 border-l border-gray-700">
-            <div class="p-4 space-y-6">
-                <h2 class="text-lg font-bold">Editeur d'arborescence</h2>
+            <div class="p-4">
+                <h2 class="text-lg font-bold mb-4">Editeur d'arborescence</h2>
                 
-                <!-- Add Slide Form -->
-                <form on:submit|preventDefault={addNewSlide} class="p-4 bg-gray-700 rounded-lg space-y-2">
-                    <h3 class="font-bold text-sm">Ajouter une slide</h3>
-                    <label class="text-xs block" for="slide-id">ID</label>
+                <!-- Add Slide Section -->
+                <div class="mb-6 p-4 bg-gray-700 rounded-lg">
+                    <h3 class="font-bold mb-3 text-sm">Ajouter une slide</h3>
+                    <label class="text-xs mb-2 block" for="slide-id">ID de la slide</label>
                     <input 
                         id="slide-id"
                         type="number" 
                         placeholder="ID"
-                        bind:value={newSlideId}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        value={newSlideId}
+                        on:change={(e) => newSlideId = parseInt((e.target as HTMLInputElement).value)}
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-2"
                     />
-                    <label class="text-xs block mt-2" for="slide-label">Label</label>
+                    <label class="text-xs mb-2 block" for="slide-label">Label de la slide</label>
                     <input 
                         id="slide-label"
                         type="text" 
-                        placeholder="Label"
+                        placeholder="Label de la slide"
                         bind:value={newSlideLabel}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-2"
                     />
                     <button 
-                        type="submit"
-                        class="w-full px-3 py-2 mt-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium"
+                        on:click={addNewSlide}
+                        class="w-full px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium"
                     >
                         + Ajouter slide
                     </button>
-                </form>
+                </div>
                 
                 <!-- Slides List -->
-                <div>
-                    <h3 class="font-bold text-sm mb-3">Slides ({$presentation.slides.length})</h3>
+                <div class="mb-6">
+                    <h3 class="font-bold mb-3 text-sm">Slides ({$presentation.slides.length})</h3>
                     {#each $presentation.slides as slide (slide.id)}
                         <SlideEditor 
                             {slide}
                             {editingButton}
                             onNavigate={goToSlide}
                             onDeleteSlide={deleteSlide}
-                            onDeleteButton={handleDeleteButton}
-                            onEditButton={handleEditButton}
+                            onDeleteButton={(slideId, buttonId) => presentation.deleteButton(slideId, buttonId)}
+                            onEditButton={updateButtonWrapper}
                         />
                     {/each}
                 </div>
                 
-                <!-- Add Button Form -->
-                <form on:submit|preventDefault={addNewButton} class="p-4 bg-gray-700 rounded-lg space-y-2">
-                    <h3 class="font-bold text-sm">Ajouter un bouton</h3>
+                <!-- Add Button Section -->
+                <div class="p-4 bg-gray-700 rounded-lg">
+                    <h3 class="font-bold mb-3 text-sm">Ajouter un bouton</h3>
                     
-                    <label class="text-xs block" for="slide-select">Slide</label>
+                    <label class="text-xs mb-2 block" for="slide-select">Slide à modifier</label>
                     <select 
                         id="slide-select"
-                        bind:value={selectedSlideForButton}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        value={selectedSlideForButton}
+                        on:change={(e) => selectedSlideForButton = parseInt((e.target as HTMLSelectElement).value)}
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-3"
                     >
                         {#each $presentation.slides as slide}
                             <option value={slide.id}>Slide {slide.id}</option>
                         {/each}
                     </select>
                     
-                    <label class="text-xs block mt-2" for="button-label">Label</label>
+                    <label class="text-xs mb-2 block" for="button-label">Label du bouton</label>
                     <input 
                         id="button-label"
                         type="text" 
-                        placeholder="Libellé du bouton"
+                        placeholder="Ex: Bouton rouge"
                         bind:value={newButtonLabel}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-3"
                     />
                     
-                    <label class="text-xs block mt-2" for="button-color">Couleur</label>
+                    <label class="text-xs mb-2 block" for="button-color">Couleur</label>
                     <select 
                         id="button-color"
                         bind:value={newButtonColor}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-3"
                     >
                         <option value="red">Rouge</option>
                         <option value="green">Vert</option>
@@ -204,27 +186,30 @@
                         <option value="cyan">Cyan</option>
                     </select>
                     
-                    <label class="text-xs block mt-2" for="button-destination">Destination</label>
+                    <label class="text-xs mb-2 block" for="button-destination">Slide destination</label>
                     <input 
                         id="button-destination"
                         type="number" 
-                        bind:value={newButtonDestination}
-                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm"
+                        value={newButtonDestination}
+                        on:change={(e) => newButtonDestination = parseInt((e.target as HTMLInputElement).value)}
+                        class="w-full px-3 py-2 rounded bg-gray-600 text-white text-sm mb-3"
                     />
                     
                     <button 
-                        type="submit"
-                        class="w-full px-3 py-2 mt-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
+                        on:click={addNewButton}
+                        class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
                     >
                         + Ajouter bouton
                     </button>
-                </form>
+                </div>
             </div>
         </aside>
     {/if}
 
     <!-- Main Slide Area -->
-    <main class="flex-1 flex items-center justify-center p-8">
+    <main class="flex-1 flex flex-col min-w-0 relative">
+
+        <!-- Slide Container (PowerPoint style) -->
         <div class="w-full max-w-4xl bg-white rounded-lg shadow-2xl" style="aspect-ratio: 16/9;">
             {#each $presentation.slides as slide (slide.id)}
                 {#if currentSlide === slide.id}
@@ -233,6 +218,7 @@
                             <p class="text-lg">{slide.label}</p>
                         </div>
                         
+                        <!-- Dynamic Navigation Buttons -->
                         {#if slide.buttons.length > 0}
                             <div class="absolute inset-0">
                                 {#each slide.buttons as button (button.id)}
@@ -241,7 +227,7 @@
                                         slideId={slide.id}
                                         colorClass={colorMap[button.color] || 'bg-gray-500 hover:bg-gray-600'}
                                         onNavigate={goToSlide}
-                                        onUpdate={handleUpdateButton}
+                                        onUpdate={(slideId: number, buttonId: string, updates: Record<string, any>) => presentation.updateButton(slideId, buttonId, updates)}
                                     />
                                 {/each}
                             </div>
@@ -250,5 +236,38 @@
                 {/if}
             {/each}
         </div>
+        <footer class="h-32 bg-white border-t border-gray-200 flex items-center px-6 gap-4 overflow-x-auto no-scrollbar">
+    {#each $presentation.slides as slide (slide.id)}
+        <button
+            on:click={() => goToSlide(slide.id)}
+            class="flex-shrink-0 group relative focus:outline-none"
+        >
+            <span
+                class="absolute -top-1 left-0 text-[10px] font-bold
+                {currentSlide === slide.id ? 'text-cyan-500' : 'text-gray-400'}"
+            >
+                {slide.id}
+            </span>
+
+            <div
+                class="w-36 aspect-video rounded-lg border-2 transition-all duration-200
+                bg-gray-50 flex items-center justify-center
+                {currentSlide === slide.id
+                    ? 'border-cyan-500 ring-2 ring-cyan-500/20'
+                    : 'border-gray-200 hover:border-gray-300'}"
+            >
+                <span class="text-[10px] font-semibold text-gray-500 truncate px-2">
+                    {slide.label}
+                </span>
+            </div>
+        </button>
+    {/each}
+</footer>
+
     </main>
 </div>
+
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+</style>
