@@ -24,77 +24,88 @@
     }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
-
-<div class="h-screen w-full flex flex-col bg-[#ebecef] overflow-hidden font-sans">
-    
-    <nav class="h-14 bg-[#8b3dff] flex items-center justify-between px-4 text-white shadow-md z-50">
-        <div class="flex items-center gap-6">
-            <span class="font-bold text-sm">DesignFlow</span>
-            <span class="text-xs opacity-60">Sans nom 1920x1080</span>
+<div class="h-full w-full bg-gradient-to-br from-purple-50 via-white to-blue-50 font-sans text-slate-800">
+    <!-- Navbar -->
+    <nav class="flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600"></div>
+            <span class="text-xl font-bold tracking-tight">DesignFlow</span>
         </div>
-
-        <div class="flex items-center gap-3">
-            <button 
-                on:click={() => togglePresentation(whitePageElement)}
-                class="flex items-center gap-2 px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-md transition-all text-xs font-bold border border-white/10"
-            >
-                <span>▶</span> Présenter
-            </button>
-
-            <button class="bg-white text-[#8b3dff] px-5 py-1.5 rounded-md font-bold text-sm shadow-sm">
-                Share
+        <div class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
+            <a href="#templates" class="hover:text-purple-600 transition-colors">Templates</a>
+            <a href="#features" class="hover:text-purple-600 transition-colors">Features</a>
+            <a href="#pricing" class="hover:text-purple-600 transition-colors">Pricing</a>
+        </div>
+        <div class="flex gap-4">
+            <button class="text-slate-600 hover:text-slate-900 font-medium">Log in</button>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
+                Sign u for free
             </button>
         </div>
     </nav>
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-16 bg-[#18191b] flex flex-col items-center py-6 gap-8 text-white/40">
-            <span>🎨</span><span>🧩</span><span class="text-white">T</span>
-        </aside>
-
-        <main class="flex-1 flex items-center justify-center p-10 relative">
-            
-            <div 
-                bind:this={whitePageElement} 
-                class="relative shadow-2xl transition-all duration-500 {$isPresentationMode ? 'w-full h-full bg-black flex items-center justify-center' : ''}"
+    <!-- Hero Section -->
+    <header class="container mx-auto px-6 py-20 md:py-32 flex flex-col items-center text-center">
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
+            Design anything. <br />
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+                Publish anywhere.
+            </span>
+        </h1>
+        <p class="text-xl md:text-2xl text-slate-500 max-w-2xl mb-10">
+            Create stunning presentations, posters, logos and more. No design skills needed.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+            <a href='/home'
+                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
+                on:mouseenter={() => isHovered = true}
+                on:mouseleave={() => isHovered = false}
             >
-                {#key $currentSlide}
-                    <div 
-                        in:scale={{duration: 400, start: 0.98}}
-                        class="bg-white flex items-center justify-center relative overflow-hidden {$isPresentationMode ? 'w-[85vw] aspect-video' : 'w-[800px] h-[450px]'}"
-                    >
-                        <div class="text-center p-12">
-                            <h1 class="text-4xl font-black text-slate-800">Contenu de la Page</h1>
-                            <p class="text-slate-400 mt-2">estce que Simon est le goat ?: {$isPresentationMode}</p>
-                        </div>
+                Start Designing 
+        </a>
+            <button class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all">
+                Browse Templates
+            </button>
+        </div>
+    </header>
 
-                        {#if $isPresentationMode}
-                            <div 
-                                class="absolute bottom-0 left-0 h-1 bg-[#8b3dff]" 
-                                style="width: {$progress * 100}%"
-                            ></div>
-                        {/if}
-                    </div>
-                {/key}
+    <!-- Creative Grid Section -->
+    <section class="container mx-auto px-6 pb-24">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
+            <!-- Card 1 Removed -->
 
-                {#if $isPresentationMode}
-                    <div transition:fade class="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 backdrop-blur-md border border-white/20 px-6 py-3 rounded-full text-white shadow-2xl">
-                        <button on:click={prevSlide}>←</button>
-                        <span class="text-[10px] font-bold uppercase tracking-widest">{$currentSlide + 1} / {totalPages}</span>
-                        <button on:click={() => nextSlide(totalPages)}>→</button>
-                        <div class="w-[1px] h-4 bg-white/20 mx-2"></div>
-                        <button 
-                            on:click={() => togglePresentation(whitePageElement)}
-                            class="text-[10px] font-bold text-red-400 hover:text-red-300 uppercase"
-                        >
-                            Quitter
-                        </button>
-                    </div>
-                {/if}
+            <!-- Card 2 -->
+            <div class="bg-yellow-100 rounded-3xl p-6 flex flex-col justify-between hover:bg-yellow-200 transition-colors cursor-pointer group">
+                <div class="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-white text-xl">✨</div>
+                <div>
+                    <h3 class="font-bold text-xl text-yellow-900 group-hover:translate-x-1 transition-transform">Presentations</h3>
+                    <p class="text-sm text-yellow-800 mt-1">Pitch decks that win</p>
+                </div>
             </div>
-        </main>
-    </div>
+
+            <!-- Card 3 Removed -->
+
+            <!-- Card 4 -->
+            <div class="md:col-span-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-3xl p-8 flex items-center justify-between text-white shadow-lg hover:shadow-pink-500/40 transition-all cursor-pointer">
+                <div class="max-w-xs">
+                    <h3 class="text-3xl font-bold mb-2">Team Collaboration</h3>
+                    <p class="text-pink-100">Design together in real-time with comments and workflows.</p>
+                </div>
+                <div class="h-16 w-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">→</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="bg-[#0f172a] text-white py-20 text-center">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold mb-6">Ready to create?</h2>
+            <button class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-10 py-4 rounded-full text-lg font-bold shadow-lg transition-all transform hover:scale-105">
+                Get Started for Free
+            </button>
+        </div>
+    </section>
 </div>
 
 <style>
