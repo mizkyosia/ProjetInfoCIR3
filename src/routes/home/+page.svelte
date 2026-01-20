@@ -160,6 +160,13 @@ function resetView() {
     zoom = 1;
     pan = { x: 0, y: 0 };
 }
+
+function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+    if (!isSidebarOpen) {
+        openPannel = "";
+    }
+}
 </script>
 
 
@@ -173,7 +180,7 @@ function resetView() {
         class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
         class:hover:bg-gray-800={isSidebarOpen}
         class:hover:bg-gray-300={!isSidebarOpen}
-        onclick={() => isSidebarOpen = !isSidebarOpen}
+        onclick={toggleSidebar}
         title="Toggle Menu"
     >
         <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
