@@ -27,13 +27,14 @@
         </p>
         
         <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-            <a href='/home'
-                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
-                on:mouseenter={() => isHovered = true}
-                on:mouseleave={() => isHovered = false}
-            >
-                Commencer un nouveau design
-        </a>
+            <a
+    href="/home"
+    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
+    onmouseenter={() => isHovered = true}
+    onmouseleave={() => isHovered = false}>
+    +page.svelte
+</a>
+
             <a href='/templates' class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all">
                 Templates déjà crées 
             </a>
@@ -44,8 +45,8 @@
     <section class="bg-[#0f172a] text-white py-20 text-center">
         <div class="container mx-auto px-6">
             <h2 class="text-4xl font-bold mb-6">Ready to create?</h2>
-            <a href='/home' class="bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-10 py-4 rounded-full text-lg font-bold shadow-lg transition-all transform hover:scale-105">
-                Get Started for Free
+            <a href='/test' class="bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-10 py-4 rounded-full text-lg font-bold shadow-lg transition-all transform hover:scale-105">
+                +page.svelte
             </a>
         </div>
     </section>

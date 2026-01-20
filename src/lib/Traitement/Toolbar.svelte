@@ -28,7 +28,11 @@ awesome.min.css">
        LOGIQUE D'ÉDITION SUR SÉLECTION
        ------------------------------ */
 
+    /**
+     * @param {string} cmd
+     */
     function applyCommand(cmd, value = null) {
+        // @ts-ignore
         document.execCommand(cmd, false, value);
     }
 
@@ -41,6 +45,7 @@ awesome.min.css">
         const elements = document.querySelectorAll("font[size='7']");
         elements.forEach(el => {
             el.removeAttribute("size");
+            // @ts-ignore
             el.style.fontSize = `${fontSize}px`;
         });
     }
@@ -49,6 +54,9 @@ awesome.min.css">
         document.execCommand("foreColor", false, textColor);
     }
 
+    /**
+     * @param {string} type
+     */
     function applyAlign(type) {
         document.execCommand("justify" + type);
     }
@@ -93,19 +101,22 @@ awesome.min.css">
 
             <!-- Style -->
             <div class="flex space-x-1">
+                <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button on:click={() => applyCommand("bold")}
                     class="px-3 py-1 border rounded font-bold bg-white hover:bg-gray-50">
-                    B
+                   <i class="fa fa-bold" aria-hidden="true"></i>
                 </button>
 
+                <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button on:click={() => applyCommand("italic")}
                     class="px-3 py-1 border rounded italic bg-white hover:bg-gray-50">
-                    I
+                    <i class="fa fa-italic" aria-hidden="true"></i>
                 </button>
 
+                <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button on:click={() => applyCommand("underline")}
                     class="px-3 py-1 border rounded underline bg-white hover:bg-gray-50">
-                    U
+                    <i class="fa fa-underline" aria-hidden="true"></i>
                 </button>
             </div>
 

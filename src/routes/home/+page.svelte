@@ -14,6 +14,9 @@ import Forms, { createShape } from '$lib/Forms.svelte';
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
+    /**
+     * @type {any[] | null | undefined}
+     */
 let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
