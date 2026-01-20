@@ -4,7 +4,7 @@
   import { onMount } from "svelte";
 
   // define initial component state
-  let isFull = false;
+  export let isFull = false;
   let fsContainer = null;
 
   // boring plain js fullscreen support stuff below

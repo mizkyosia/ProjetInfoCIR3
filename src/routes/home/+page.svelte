@@ -14,6 +14,7 @@
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
 import Fullscreen from "$lib/Fullscreen.svelte";
+import Resize from "$lib/Resize.svelte";
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -22,6 +23,49 @@ let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
 let boardElement; // Reference to the board div
 let fullscreenComponent;
+let isFull = $state(false);
+
+// ✅ Taille "réelle" de la white board (modifiable)
+let boardWidth = $state(800);
+let boardHeight = $state(450);
+let boardColor = $state("#ffffff");
+let showResizePopup = $state(false);
+
+let previousZoom = 1;
+let previousPan = { x: 0, y: 0 };
+let wasFull = false;
+
+$effect(() => {
+    if (isFull) {
+        if (!wasFull) {
+             // Just entered fullscreen: save state
+            previousZoom = zoom;
+            previousPan = { ...pan };
+            wasFull = true;
+        }
+
+        // Simple "contain" logic for Presentation Mode
+        const padding = 20;
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        
+        const scaleX = (screenW - padding) / boardWidth;
+        const scaleY = (screenH - padding) / boardHeight;
+        // Don't upscale indefinitely if board is tiny? Or yes? Projector mode implies filling screen.
+        // Let's cap at 5x.
+        const fitScale = Math.min(scaleX, scaleY, 5);
+        
+        zoom = fitScale;
+        pan = { x: 0, y: 0 };
+    } else {
+        if (wasFull) {
+            // Just exited fullscreen: restore state
+            zoom = previousZoom;
+            pan = previousPan;
+            wasFull = false;
+        }
+    }
+});
 
 // Drawing State
 let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
@@ -176,21 +220,6 @@ function toggleSidebar() {
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
     
-    <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div 
-        class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
-        class:hover:bg-gray-800={isSidebarOpen}
-        class:hover:bg-gray-300={!isSidebarOpen}
-        onclick={toggleSidebar}
-        title="Toggle Menu"
-    >
-        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-        <div class="w-6 h-0.5 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-    </div>
-
     <!-- Left Sidebar (Navigation) -->
     {#if isSidebarOpen}
         <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20">
@@ -220,12 +249,32 @@ function toggleSidebar() {
     <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
         
         <!-- Top Bar -->
-        <header class="h-14 bg-linear-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
+        <header class="h-14 bg-linear-to-r from-red-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
             <div class="flex items-center space-x-4">
+                <!-- Burger Menu -->
+                <button 
+                    class="p-1 mr-1 cursor-pointer rounded hover:bg-white/10 flex flex-col justify-center"
+                    onclick={toggleSidebar}
+                    title="Toggle Menu"
+                >
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 bg-white/90"></div>
+                </button>
+
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
-                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
+                
+                <!-- Resize Button & Popup -->
+                 <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:color={boardColor}
+                    bind:visible={showResizePopup} 
+                    type="menu" 
+                 />
+
                 <div class="h-4 w-px bg-white/30"></div>
-                <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
+                <span class="text-sm opacity-90">Sans nom  {boardWidth}x{boardHeight} </span>
             </div>
             <button 
                 class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
@@ -240,19 +289,27 @@ function toggleSidebar() {
             
             <!-- The White Board / Page -->
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-             <Fullscreen let:isFull bind:this={fullscreenComponent}>
+             <Fullscreen bind:isFull={isFull} bind:this={fullscreenComponent}>
             <div 
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
-                class="bg-white w-200 h-110 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair fs {isFull ? 'w-screen h-screen' : ''}"
-                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
+                class="bg-white shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair fs"
+                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px; background-color:{boardColor};"
                 ondrop={handleDrop} 
                 ondragover={handleDragOver}
                 onmousedown={handleMouseDown}
                 onmousemove={handleMouseMove}
                 onmouseup={handleMouseUp}
             >
+                <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:visible={showResizePopup}
+                    type="handle"
+                    zoom={zoom}
+                />
+
                 <!-- Dropped Elements -->
                 {#each canvasElements as element (element.id)}
                     {#if element.type === 'quizz'}
