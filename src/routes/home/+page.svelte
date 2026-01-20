@@ -78,10 +78,13 @@
         id="presentation"
         class="bg-white w-[800px] h-[450px] shadow-xl relative group overflow-hidden flex items-center justify-center"
     >
-        <h1 class="text-5xl font-bold text-indigo-700">Slide de Test</h1>
+        <h1 class="text-5xl font-bold text-red-600">Slide de Test</h1>
+        <p class="absolute bottom-4 right-4 text-green-500 text-sm">Powered by SvelteKit</p>
+        <p class="absolute top-4 left-4 text-yellow-500 text-sm">Slide 1</p>
+        <p class="absolute top-4 right-4 text-pink-500 text-sm">56%</p>
     </div>
 
-    <!-- Footer / Zoom Controls -->
+    <!-- Footer / Zoom Controls --> 
     <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
         <div class="h-4 w-[1px] bg-gray-300"></div>
         <div class="flex items-center space-x-2">
