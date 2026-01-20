@@ -23,7 +23,7 @@ export type Element =
   | ImageElement
   | QuizzElement
 
-type BaseElement = {
+export type BaseElement = {
   id: string
   x: number
   y: number
@@ -34,6 +34,7 @@ type BaseElement = {
   fillColor: string
   borderColor: string
   borderThickness: number
+  borderRadius: number
   borderStyle: "solid" | "dotted" | "dashed",
 
 }
