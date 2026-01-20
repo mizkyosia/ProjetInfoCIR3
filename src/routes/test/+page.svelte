@@ -1,5 +1,5 @@
 <script>
-    import Toolbar from "$lib/Toolbar.svelte";
+    import Toolbar from "$lib/Traitement/Toolbar.svelte";
 
     // Texte de test pour vérifier les boutons
     let text = `
