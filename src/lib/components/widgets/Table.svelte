@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { TableElement } from "$lib/types/presentation";
+    import type { BaseElement, TableElement } from "$lib/types/presentation";
     import Base from "./Base.svelte";
 
-    let { table, ...base }: TableElement = $props();
+    let data: TableElement = $props();
 
     let width = 300;
     let height = 150;
@@ -21,11 +21,11 @@
     }
 
     function modify(action: "addR" | "delR" | "addC" | "delC") {
-        if (action === "addR") table.push(Array(table[0].length));
-        if (action === "delR" && table.length > 1) table.pop();
-        if (action === "addC") for (let l of table) l.push("");
-        if (action === "delC" && table[0].length > 1)
-            for (let l of table) l.pop();
+        if (action === "addR") data.table.push(Array(data.table[0].length));
+        if (action === "delR" && data.table.length > 1) data.table.pop();
+        if (action === "addC") for (let l of data.table) l.push("");
+        if (action === "delC" && data.table[0].length > 1)
+            for (let l of data.table) l.pop();
         showMenu = false;
     }
 
@@ -35,26 +35,26 @@
     }
 </script>
 
-<Base {...base}>
+<Base data={data as BaseElement}>
     <div
         class="flex-1 w-full h-full overflow-hidden relative"
         oncontextmenu={handleContext}
         role="presentation"
     >
         <table
-            class="w-full h-full border-collapse table-fixed pointer-events-none"
+            class="w-full h-full border-collapse data.table-fixed pointer-events-none"
             style="
-    backgound-color: {base.fillColor};
-    border: {base.borderThickness}px {base.borderStyle} {base.borderColor};
-    border-radius: {base.borderRadius};"
+    backgound-color: {data.fillColor};
+    border: {data.borderThickness}px {data.borderStyle} {data.borderColor};
+    border-radius: {data.borderRadius};"
         >
             <tbody>
-                {#each table as row, r (r)}
-                    <tr style="height: {100 / table.length}%;">
+                {#each data.table as row, r (r)}
+                    <tr style="height: {100 / data.table.length}%;">
                         {#each row as cell, c (c)}
                             <td
                                 contenteditable="true"
-                                bind:textContent={table[r][c]}
+                                bind:textContent={data.table[r][c]}
                                 class="border border-gray-300 p-1 text-sm overflow-hidden focus:bg-blue-50 focus:outline-none pointer-events-auto"
                             ></td>
                         {/each}

@@ -25,6 +25,7 @@ type ElementMap = {
     image: ImageElement;
     quizz: QuizzElement;
     table: TableElement;
+    shape: ShapeElement;
 };
 
 export type BaseElement = {
@@ -40,7 +41,9 @@ export type BaseElement = {
     borderThickness: number;
     borderRadius: number;
     borderStyle: "solid" | "dotted" | "dashed";
+    opacity: number;
 };
+
 
 export type TextElement = BaseElement & {
     type: "text";
@@ -66,6 +69,19 @@ export type TableElement = BaseElement & {
     table: string[][];
 };
 
+export type ShapeType =
+    | "rectangle"
+    | "circle"
+    | "triangle"
+    | "star"
+    | "bubble"
+    | "heart"
+    | "arrow";
+export type ShapeElement = BaseElement & {
+    type: "shape";
+    shapeType: ShapeType;
+};
+
 export function createPresentationElement<T extends keyof ElementMap>(
     type: T,
     parameters?: Partial<Omit<ElementMap[T], "type" | "id">>,
@@ -82,6 +98,7 @@ export function createPresentationElement<T extends keyof ElementMap>(
         borderRadius: 0,
         borderStyle: "solid",
         borderThickness: 0,
+        opacity: 1,
     };
 
     // Define defaults for each type
@@ -98,6 +115,9 @@ export function createPresentationElement<T extends keyof ElementMap>(
             question: "Quelle est la couleur du cheval blanc de Henri IV ?",
             options: ["Blanc", "Gris", "Noir"],
             correctAnswerIndex: 0,
+        },
+        shape: {
+            shapeType: "rectangle",
         },
     };
 

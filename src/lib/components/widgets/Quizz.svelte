@@ -1,14 +1,8 @@
 <script lang="ts">
-    import type { QuizzElement } from "$lib/types/presentation";
+    import type { BaseElement, QuizzElement } from "$lib/types/presentation";
     import Base from "./Base.svelte";
 
-    let {
-        question,
-        options,
-        correctAnswerIndex,
-        mode,
-        ...base
-    }: QuizzElement & { mode: "edit" | "view" } = $props();
+    let data: QuizzElement & { mode: "edit" | "view" } = $props();
 
     let selectedIndex: number | null = $state(null);
     let issubmitted = $state(false);
@@ -33,24 +27,24 @@
 
     // --- Edit Logic ---
     function addOption() {
-        options.push(`Option ${options.length + 1}`);
+        data.options.push(`Option ${data.options.length + 1}`);
     }
 
     function removeOption(index: number) {
-        options = options.filter((_, i) => i !== index);
-        if (correctAnswerIndex === index) correctAnswerIndex = 0;
-        if (correctAnswerIndex > index) correctAnswerIndex--;
+        data.options = data.options.filter((_, i) => i !== index);
+        if (data.correctAnswerIndex === index) data.correctAnswerIndex = 0;
+        if (data.correctAnswerIndex > index) data.correctAnswerIndex--;
     }
 </script>
 
-<Base {...base}>
+<Base data={data as BaseElement}>
     <div
         class="bg-neutral-50 overflow-hidden border-2 border-[#ddd] rounded-lg p-4 text-left w-full h-full font-sans"
     >
-        <h3 class="mt-0 mb-5 text-neutral-900">{question}</h3>
+        <h3 class="mt-0 mb-5 text-neutral-900" contenteditable="true">{data.question}</h3>
 
         <div class="flex flex-col gap-2.5">
-            {#each options as option, index}
+            {#each data.options as option, index}
                 <button
                     class={[
                         "p-3 text-left border-2 rounded-md cursor-pointer transition-all",
@@ -58,11 +52,11 @@
                             "border-blue-500 bg-blue-200 font-bold":
                                 selectedIndex === index,
                             "border-green-500 bg-green-200 text-green-950":
-                                issubmitted && index === correctAnswerIndex,
+                                issubmitted && index === data.correctAnswerIndex,
                             "border-red-500 bg-red-200 text-red-950":
                                 issubmitted &&
                                 selectedIndex === index &&
-                                index !== correctAnswerIndex,
+                                index !== data.correctAnswerIndex,
                             "border-neutral-700": !issubmitted,
                         },
                     ]}

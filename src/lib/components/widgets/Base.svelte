@@ -6,20 +6,9 @@
     import type { BaseElement } from "$lib/types/presentation";
 
     let {
-        x,
-        y,
-        width,
-        height,
-        id,
-        rotation,
-        zIndex,
-        fillColor,
-        borderColor,
-        borderStyle,
-        borderThickness,
-        borderRadius,
+        data = $bindable(),
         children,
-    }: BaseElement & { children?: Snippet } = $props();
+    }: { data: BaseElement; children?: Snippet } = $props();
 
     import { type Snippet } from "svelte";
 
@@ -74,21 +63,21 @@
         const dy = e.clientY - startY;
 
         if (mode === "move") {
-            x += dx;
-            y += dy;
+            data.x += dx;
+            data.y += dy;
             startX = e.clientX;
             startY = e.clientY;
         }
 
         if (mode === "resize") {
-            width = Math.max(20, width + dx);
-            height = Math.max(20, height + dy);
+            data.width = Math.max(20, data.width + dx);
+            data.height = Math.max(20, data.height + dy);
             startX = e.clientX;
             startY = e.clientY;
         }
 
         if (mode === "rotate") {
-            rotation =
+            data.rotation =
                 Math.atan2(e.clientY - centerY, e.clientX - centerX) +
                 Math.PI / 2;
         }
@@ -106,10 +95,10 @@
     class="element absolute touch-none select-none box-border origin-center"
     style="
     transform:
-      translate({x}px, {y}px)
-      rotate({rotation}rad);
-    width: {width}px;
-    height: {height}px;
+      translate({data.x}px, {data.y}px)
+      rotate({data.rotation}rad);
+    width: {data.width}px;
+    height: {data.height}px;
   "
     onpointerdown={(e) => {
         e.stopPropagation();
@@ -118,15 +107,13 @@
         selectedElement = () => {
             selected = false;
             selectedElement = undefined;
-            return id;
+            return data.id;
         };
         selected = true;
     }}
 >
     <!-- actual content (NOT draggable) -->
-    <div
-        class="w-full h-full pointer-events-auto z-10 relative box-border"
-    >
+    <div class="w-full h-full pointer-events-auto z-10 relative box-border">
         {@render children?.()}
     </div>
 

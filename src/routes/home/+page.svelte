@@ -1,6 +1,5 @@
 <script lang="ts">
     import Export from "$lib/components/Export.svelte";
-    import Base from "$lib/components/widgets/Base.svelte";
     import Image from "$lib/components/widgets/Image.svelte";
 
     // Placeholder data for the sidebar items
@@ -25,6 +24,7 @@
     import Quizz from "$lib/components/widgets/Quizz.svelte";
     import Table from "$lib/components/widgets/Table.svelte";
     import { listImageURLs, getImageURL, saveImage } from "$lib/db/images";
+    import Forms from "$lib/components/widgets/Shape.svelte";
     import {
         createPresentationElement,
         type Element,
@@ -35,6 +35,7 @@
     let canvasElements: Element[] = $state([]);
     let zoom = $state(1);
     let pan = $state({ x: 0, y: 0 });
+    let isSidebarOpen = $state(false);
     let boardElement: HTMLDivElement; // Reference to the board div
 
     let uploadedImages: Awaited<ReturnType<typeof listImageURLs>> = $state([]);
@@ -93,6 +94,12 @@
         zoom = 1;
         pan = { x: 0, y: 0 };
     }
+    function toggleSidebar() {
+        isSidebarOpen = !isSidebarOpen;
+        if (!isSidebarOpen) {
+            openPanel = "";
+        }
+    }
 
     async function onUpload(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -112,30 +119,52 @@
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
-    <!-- Left Sidebar (Navigation) -->
-    <aside
-        class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0"
+    <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
+        class:hover:bg-gray-800={isSidebarOpen}
+        class:hover:bg-gray-300={!isSidebarOpen}
+        onclick={toggleSidebar}
+        title="Toggle Menu"
     >
-        <!-- Burger Menu / Logo placeholder -->
-        <div class="mb-6 p-2 cursor-pointer hover:bg-gray-800 rounded">
-            <div class="w-6 h-0.5 bg-white mb-1"></div>
-            <div class="w-6 h-0.5 bg-white mb-1"></div>
-            <div class="w-6 h-0.5 bg-white"></div>
-        </div>
+        <div
+            class="w-6 h-0.5 mb-1 transition-colors"
+            class:bg-white={isSidebarOpen}
+            class:bg-gray-800={!isSidebarOpen}
+        ></div>
+        <div
+            class="w-6 h-0.5 mb-1 transition-colors"
+            class:bg-white={isSidebarOpen}
+            class:bg-gray-800={!isSidebarOpen}
+        ></div>
+        <div
+            class="w-6 h-0.5 transition-colors"
+            class:bg-white={isSidebarOpen}
+            class:bg-gray-800={!isSidebarOpen}
+        ></div>
+    </div>
 
-        <!-- Nav Items -->
-        <nav class="flex-1 w-full space-y-2">
-            {#each sidebarItems as item, i}
-                <button
-                    onclick={() => (openPanel = item.label)}
-                    class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${openPanel === item.label ? "bg-gray-800 border-l-4 border-cyan-400" : ""}`}
-                >
-                    <span class="text-xl mb-1">{@html item.icon}</span>
-                    <span class="text-xs font-medium">{item.label}</span>
-                </button>
-            {/each}
-        </nav>
-    </aside>
+    <!-- Left Sidebar (Navigation) -->
+    {#if isSidebarOpen}
+        <aside
+            class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20"
+        >
+            <!-- Nav Items -->
+            <nav class="flex-1 w-full space-y-2">
+                {#each sidebarItems as item, i}
+                    <button
+                        onclick={() => (openPanel = item.label)}
+                        class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${openPanel === item.label ? "bg-gray-800 border-l-4 border-cyan-400" : ""}`}
+                    >
+                        <span class="text-xl mb-1">{@html item.icon}</span>
+                        <span class="text-xs font-medium">{item.label}</span>
+                    </button>
+                {/each}
+            </nav>
+        </aside>
+    {/if}
     {#if openPanel == "Photo"}
         <div
             class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
@@ -245,6 +274,25 @@
                 }}>Ajouter quizz</button
             >
         </div>
+    {:else if openPanel === "Forms"}
+        <div
+            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
+        >
+            <Forms
+                mode="sidebar"
+                onSelect={(t) => {
+                    canvasElements.push(
+                        createPresentationElement("shape", {
+                            shapeType: t,
+                            fillColor: "#0000aa",
+                            borderColor: "#0000cc",
+                            borderThickness: 2,
+                        }),
+                    );
+                }}
+                {...createPresentationElement("shape")}
+            />
+        </div>
     {/if}
 
     <!-- Main Workspace (Canvas Area) -->
@@ -281,6 +329,8 @@
                 {#each canvasElements as element (element.id)}
                     {#if element.type === "image"}
                         <Image {...element} />
+                    {:else if element.type === "shape"}
+                        <Forms {...element} mode="canvas" />
                     {:else if element.type === "table"}
                         <Table {...element} />
                     {:else if element.type === "quizz"}
