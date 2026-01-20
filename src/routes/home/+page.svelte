@@ -10,11 +10,85 @@
     ];
 
 import Quizz from '$lib/Quizz.svelte';
+import Forms from '$lib/Forms.svelte';
+
 let openPannel = $state("")
 let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
 let boardElement; // Reference to the board div
+
+// Drawing State
+let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
+let isDrawing = $state(false);
+let startPoint = $state({ x: 0, y: 0 });
+let currentShapeId = $state(null);
+
+function handleSelectShape(type) {
+    drawingTool = type;
+    // Optional: cursor feedback
+}
+
+function handleMouseDown(event) {
+    if (!drawingTool) return;
+    if (event.button !== 0) return; // Only left click
+
+    isDrawing = true;
+    const rect = boardElement.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / zoom;
+    const y = (event.clientY - rect.top) / zoom;
+    startPoint = { x, y };
+
+    // Create initial shape
+    const isArrow = drawingTool === 'arrow';
+    const newShapeData = {
+        shapeType: drawingTool,
+        width: 0, 
+        height: 0, 
+        rotation: 0,
+        fill: isArrow ? 'transparent' : '#e0e7ff', 
+        stroke: '#4338ca', 
+        strokeWidth: isArrow ? 4 : 2, 
+        opacity: 1
+    };
+
+    const newId = Date.now();
+    currentShapeId = newId;
+    canvasElements = [...canvasElements, { id: newId, type: 'shape', data: newShapeData, x, y }];
+}
+
+function handleMouseMove(event) {
+    if (!isDrawing || !currentShapeId) return;
+
+    const rect = boardElement.getBoundingClientRect();
+    const currentX = (event.clientX - rect.left) / zoom;
+    const currentY = (event.clientY - rect.top) / zoom;
+
+    const width = currentX - startPoint.x;
+    const height = currentY - startPoint.y;
+
+    // find and update the shape
+    const index = canvasElements.findIndex(el => el.id === currentShapeId);
+    if (index !== -1) {
+        const el = canvasElements[index];
+        // Normalize negative width/height (dragging left/up)
+        const finalX = width < 0 ? currentX : startPoint.x;
+        const finalY = height < 0 ? currentY : startPoint.y;
+        const finalW = Math.abs(width);
+        const finalH = Math.abs(height);
+
+        canvasElements[index] = { ...el, x: finalX, y: finalY, data: { ...el.data, width: Math.max(10, finalW), height: Math.max(10, finalH) } };
+    }
+}
+
+function handleMouseUp(event) {
+    if (isDrawing) {
+        isDrawing = false;
+        currentShapeId = null;
+        drawingTool = null; // Reset tool after drawing one shape, or keep it if continuous drawing desired
+        openPannel = ""; // Close panel or keep open? User preference. Closing implies "tool used once".
+    }
+}
 
 function handleDrop(event) {
     event.preventDefault();
@@ -116,6 +190,10 @@ function resetView() {
         <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
             <Quizz mode="edit" />
         </div>
+    {:else if openPannel === "Forms"}
+        <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+            <Forms mode="sidebar" onSelect={handleSelectShape} />
+        </div>
     {/if}
 
 
@@ -136,14 +214,18 @@ function resetView() {
         <div class="flex-1 relative overflow-hidden flex items-center justify-center bg-gray-200 w-full h-full" onwheel={handleWheel}>
             
             <!-- The White Board / Page -->
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <div 
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
-                class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform" 
+                class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair" 
                 style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
                 ondrop={handleDrop} 
-                ondragover={handleDragOver} 
+                ondragover={handleDragOver}
+                onmousedown={handleMouseDown}
+                onmousemove={handleMouseMove}
+                onmouseup={handleMouseUp}
             >
                 <!-- Dropped Elements -->
                 {#each canvasElements as element (element.id)}
@@ -158,6 +240,12 @@ function resetView() {
                                 options={element.data.options} 
                                 correctAnswerIndex={element.data.correctAnswerIndex} 
                             />
+                         </div>
+                    {:else if element.type === 'shape'}
+                         <div 
+                            style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element.data.width}px; height: {element.data.height}px;"
+                         >
+                            <Forms mode="canvas" bind:data={element.data} />
                          </div>
                     {/if}
                 {/each}
