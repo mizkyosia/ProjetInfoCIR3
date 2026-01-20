@@ -1,96 +1,110 @@
-<script>
-    let isHovered = false;
+<script lang="ts">
+    import { isPresentationMode, togglePresentation, currentSlide, nextSlide, prevSlide } from '$lib/photo.svelte';
+    import { fade, fly, scale } from 'svelte/transition';
+    
+    let currentPage: 'landing' | 'editor' = 'landing';
+    let editorContainer: HTMLElement;
+
+    // Structure de données flexible : tu peux ajouter des images, du texte, etc.
+    let pages = [
+        { id: 1, title: "Concept Initial", content: "Focus sur l'expérience utilisateur.", color: "bg-white" },
+        { id: 2, title: "Design System", content: "Utilisation de Tailwind CSS et Svelte.", color: "bg-white" }
+    ];
+
+    const addPage = () => {
+        pages = [...pages, { 
+            id: Date.now(), 
+            title: "Nouvelle Page", 
+            content: "Éditez ce contenu...", 
+            color: "bg-white" 
+        }];
+    };
+
+    function handleKeyDown(e: KeyboardEvent) {
+        if (!$isPresentationMode) return;
+        if (e.key === 'ArrowRight') nextSlide(pages.length);
+        if (e.key === 'ArrowLeft') prevSlide();
+        if (e.key === 'Escape') togglePresentation(editorContainer);
+    }
 </script>
 
-<div class="h-full w-full bg-gradient-to-br from-purple-50 via-white to-blue-50 font-sans text-slate-800">
-    <!-- Navbar -->
-    <nav class="flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600"></div>
-            <span class="text-xl font-bold tracking-tight">DesignFlow</span>
-        </div>
-        <div class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
-            <a href="#templates" class="hover:text-purple-600 transition-colors">Templates</a>
-            <a href="#features" class="hover:text-purple-600 transition-colors">Features</a>
-            <a href="#pricing" class="hover:text-purple-600 transition-colors">Pricing</a>
-        </div>
-        <div class="flex gap-4">
-            <button class="text-slate-600 hover:text-slate-900 font-medium">Log in</button>
-            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
-                Sign u for free
-            </button>
-        </div>
-    </nav>
+<svelte:window on:keydown={handleKeyDown} />
 
-    <!-- Hero Section -->
-    <header class="container mx-auto px-6 py-20 md:py-32 flex flex-col items-center text-center">
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-            Design anything. <br />
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-                Publish anywhere.
-            </span>
-        </h1>
-        <p class="text-xl md:text-2xl text-slate-500 max-w-2xl mb-10">
-            Create stunning presentations, posters, logos and more. No design skills needed.
-        </p>
+{#if currentPage === 'landing'}
+    <div out:fade class="h-screen flex flex-col items-center justify-center bg-[#0f172a] text-white">
+        <div class="relative">
+            <div class="absolute -inset-1 rounded-lg bg-gradient-to-r from-rose-400 via-fuchsia-500 to-indigo-500 opacity-75 blur"></div>
+            <h1 class="relative text-8xl font-black tracking-tighter mb-8 bg-white bg-clip-text text-transparent">DesignFlow</h1>
+        </div>
+        <button 
+            on:click={() => currentPage = 'editor'} 
+            class="group relative px-8 py-4 font-bold text-white transition-all duration-300"
+        >
+            <div class="absolute inset-0 bg-purple-600 rounded-xl group-hover:scale-105 group-hover:bg-purple-500 transition-all"></div>
+            <span class="relative">Start Designing →</span>
+        </button>
+    </div>
+
+{:else}
+    <div bind:this={editorContainer} class="h-screen w-full flex flex-col bg-[#f1f5f9] overflow-hidden">
         
-        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-            <a href='/home'
-                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
-                on:mouseenter={() => isHovered = true}
-                on:mouseleave={() => isHovered = false}
-            >
-                Start Designing 
-        </a>
-            <button class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all">
-                Browse Templates
-            </button>
-        </div>
-    </header>
+        {#if $isPresentationMode}
+            <div class="h-full w-full bg-[#0f172a] flex items-center justify-center relative overflow-hidden" in:fade>
+                
+                {#key $currentSlide}
+                    <div 
+                        in:fly={{ x: 100, duration: 500 }} 
+                        out:fly={{ x: -100, duration: 500 }}
+                        class="w-[85%] aspect-video {pages[$currentSlide].color} rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col p-20"
+                    >
+                        <h2 class="text-6xl font-black text-slate-900 mb-8 border-b-4 border-purple-500 pb-4 inline-block">
+                            {pages[$currentSlide].title}
+                        </h2>
+                        <p class="text-3xl text-slate-600 leading-relaxed">
+                            {pages[$currentSlide].content}
+                        </p>
+                    </div>
+                {/key}
 
-    <!-- Creative Grid Section -->
-    <section class="container mx-auto px-6 pb-24">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
-            <!-- Card 1 Removed -->
-
-            <!-- Card 2 -->
-            <div class="bg-yellow-100 rounded-3xl p-6 flex flex-col justify-between hover:bg-yellow-200 transition-colors cursor-pointer group">
-                <div class="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-white text-xl">✨</div>
-                <div>
-                    <h3 class="font-bold text-xl text-yellow-900 group-hover:translate-x-1 transition-transform">Presentations</h3>
-                    <p class="text-sm text-yellow-800 mt-1">Pitch decks that win</p>
+                <div class="absolute bottom-8 flex items-center gap-6 bg-white/10 backdrop-blur-xl px-8 py-4 rounded-2xl border border-white/20 text-white shadow-2xl">
+                    <button on:click={prevSlide} class="hover:text-purple-400 transition-colors text-2xl">←</button>
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs uppercase tracking-widest opacity-50">Slide</span>
+                        <span class="font-bold">{$currentSlide + 1} / {pages.length}</span>
+                    </div>
+                    <button on:click={() => nextSlide(pages.length)} class="hover:text-purple-400 transition-colors text-2xl">→</button>
+                    <div class="w-[1px] h-8 bg-white/20 mx-2"></div>
+                    <button on:click={() => togglePresentation(editorContainer)} class="bg-red-500/80 hover:bg-red-500 px-4 py-2 rounded-lg text-xs font-bold transition-all">QUITTER</button>
                 </div>
             </div>
 
-            <!-- Card 3 Removed -->
-
-            <!-- Card 4 -->
-            <div class="md:col-span-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-3xl p-8 flex items-center justify-between text-white shadow-lg hover:shadow-pink-500/40 transition-all cursor-pointer">
-                <div class="max-w-xs">
-                    <h3 class="text-3xl font-bold mb-2">Team Collaboration</h3>
-                    <p class="text-pink-100">Design together in real-time with comments and workflows.</p>
+        {:else}
+            <nav class="bg-white/80 backdrop-blur-md p-4 flex justify-between items-center border-b border-slate-200 z-10">
+                <button on:click={() => currentPage = 'landing'} class="text-slate-400 hover:text-purple-600 transition-colors font-medium">← Back to Home</button>
+                
+                <div class="flex gap-3">
+                    <button on:click={addPage} class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm">+ Add Page</button>
+                    <button 
+                        on:click={() => togglePresentation(editorContainer)} 
+                        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-purple-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                        <span>Present Project</span>
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase">{pages.length}</span>
+                    </button>
                 </div>
-                <div class="h-16 w-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">→</div>
-            </div>
-        </div>
-    </section>
+            </nav>
 
-    <!-- Footer CTA -->
-    <section class="bg-[#0f172a] text-white py-20 text-center">
-        <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold mb-6">Ready to create?</h2>
-            <button class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-10 py-4 rounded-full text-lg font-bold shadow-lg transition-all transform hover:scale-105">
-                Get Started for Free
-            </button>
-        </div>
-    </section>
-</div>
-
-<style>
-    /* Global Reset/Base styles if Tailwind isn't fully configured */
-    :global(body) {
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-</style>
+            <main class="flex-1 overflow-y-auto p-12 space-y-12 flex flex-col items-center bg-[#f8fafc]">
+                {#each pages as page, i}
+                    <div class="group relative" in:scale={{duration: 300}}>
+                        <span class="absolute -left-12 top-0 text-slate-300 font-black text-4xl">0{i + 1}</span>
+                        <div class="w-[800px] aspect-video {page.color} rounded-sm shadow-xl border border-slate-200 flex flex-col p-12 hover:shadow-2xl hover:border-purple-300 transition-all">
+                            <input bind:value={page.title} class="text-4xl font-black text-slate-800 outline-none bg-transparent mb-6" placeholder="Titre de la slide..." />
+                            <textarea bind:value={page.content} class="flex-1 w-full outline-none resize-none bg-transparent text-xl text-slate-500" placeholder="Commencez à écrire..."></textarea>
+                        </div>
+                    </div>
+                {/each}
+            </main>
+        {/if}
+    </div>
+{/if}
