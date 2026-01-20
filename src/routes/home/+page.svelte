@@ -82,6 +82,7 @@
         <p class="absolute bottom-4 right-4 text-green-500 text-sm">Powered by SvelteKit</p>
         <p class="absolute top-4 left-4 text-yellow-500 text-sm">Slide 1</p>
         <p class="absolute top-4 right-4 text-pink-500 text-sm">56%</p>
+        <p class="absolute bottom-4 left-4 text-purple-500 text-sm">00:00 / 10:00</p>
     </div>
 
     <!-- Footer / Zoom Controls --> 
