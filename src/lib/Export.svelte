@@ -1,5 +1,7 @@
 <script lang="ts">
   import html2canvas from "html2canvas-pro";
+  export let canvasElements: any[];
+
   let showShareMenu = false;
 
   function toggleShareMenu() {
@@ -76,94 +78,20 @@
     }
   }
   function exportHTML() {
-    try {
-      const element = document.getElementById("presentation");
+  const id = crypto.randomUUID();
 
-      if (!element) {
-        console.error("Presentation element not found");
-        return;
-      }
+  localStorage.setItem(
+    "pres:" + id,
+    JSON.stringify({
+      canvasElements
+    })
+  );
 
-      // Cloner l'élément et convertir oklch en hsl
-      const clonedElement = element.cloneNode(true);
-      const allElements = clonedElement.querySelectorAll("*");
-      const origElements = element.querySelectorAll("*");
+  window.open(`/viewer#${id}`, "_blank");
+  showShareMenu = false;
+}
 
-      const colorProps = [
-        "color",
-        "backgroundColor",
-        "borderTopColor",
-        "borderRightColor",
-        "borderBottomColor",
-        "borderLeftColor",
-        "outlineColor",
-        "textDecorationColor",
-      ];
 
-      
-
-      const htmlContent = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presentation</title>
-
-    <script src="https://cdn.tailwindcss.com"><\/script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .presentation {
-            width: 800px;
-            height: 450px;
-            background-color: white;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
-</head>
-<body>
-    <div class="presentation">
-        ${clonedElement.innerHTML}
-    </div>
-</body>
-</html>`;
-
-      const blob = new Blob([htmlContent], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "presentation.html";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showShareMenu = false;
-    } catch (error) {
-      console.error("Error exporting HTML:", error);
-    }
-  }
 
   function sendLink() {
     console.log("Sending link...");

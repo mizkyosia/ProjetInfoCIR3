@@ -222,7 +222,8 @@ function toggleSidebar() {
         <!-- Top Bar -->
         <header class="h-14 bg-linear-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
             <div class="flex items-center space-x-4">
-                <Export />
+                <Export {canvasElements} />
+
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
@@ -240,14 +241,16 @@ function toggleSidebar() {
                 role="region" 
                 aria-label="main" 
                 class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair" 
+                
                 style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
                 ondrop={handleDrop} 
                 ondragover={handleDragOver}
                 onmousedown={handleMouseDown}
                 onmousemove={handleMouseMove}
                 onmouseup={handleMouseUp}
+                
             >
-                <!-- Dropped Elements -->
+                
                 {#each canvasElements as element (element.id)}
                     {#if element.type === 'quizz'}
                          <div 
