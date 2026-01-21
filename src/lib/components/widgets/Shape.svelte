@@ -2,17 +2,20 @@
     import Base from "./Base.svelte";
     import type {
         BaseElement,
+        ElementProps,
         ShapeElement,
         ShapeType,
     } from "../../types/presentation";
 
     // --- PROPS ---
-    let test: ShapeElement & {
+    let {
+        data = $bindable(),
+        mode,
+        onSelect
+    }: ElementProps<ShapeElement> & {
         mode: "sidebar" | "canvas";
         onSelect?: (t: ShapeType) => any;
     } = $props();
-
-    let data = $state({ ...test });
 
     // --- CONSTANTS ---
     const SHAPES: { type: ShapeType; icon: string; label: string }[] = [
@@ -29,7 +32,7 @@
     // No more drag handlers needed for sidebar buttons if we are clicking.
 </script>
 
-{#if data.mode === "sidebar"}
+{#if mode === "sidebar"}
     <!-- PALETTE data.mode -->
     <div class="h-full flex flex-col bg-white">
         <div class="p-4 border-b border-gray-100">
@@ -42,7 +45,7 @@
             {#each SHAPES as shape}
                 <button
                     class="flex flex-col items-center justify-center p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-white hover:border-blue-400 hover:shadow-md cursor-pointer transition-all duration-200 group focus:ring-2 focus:ring-blue-200 focus:outline-none"
-                    onclick={() => data.onSelect?.(shape.type)}
+                    onclick={() => onSelect?.(shape.type)}
                     title={shape.label}
                 >
                     <span
@@ -57,7 +60,7 @@
             {/each}
         </div>
     </div>
-{:else if data.mode === "canvas" && data}
+{:else if mode === "canvas" && data}
     <!-- CANVAS RENDER data.mode -->
     <!-- 
         Pure SVG Renderer. 
@@ -70,9 +73,7 @@
             viewBox={`0 0 ${data.width} ${data.height}`}
             class="block overflow-visible w-full h-full pointer-events-none"
         >
-            <g
-                style:opacity={data.opacity}
-            >
+            <g style:opacity={data.opacity}>
                 {#if data.shapeType === "rectangle"}
                     <rect
                         width={data.width}

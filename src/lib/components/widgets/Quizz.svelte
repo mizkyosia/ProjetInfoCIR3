@@ -1,8 +1,14 @@
 <script lang="ts">
-    import type { BaseElement, QuizzElement } from "$lib/types/presentation";
+    import type {
+        BaseElement,
+        ElementProps,
+        QuizzElement,
+    } from "$lib/types/presentation";
     import Base from "./Base.svelte";
 
-    let data: QuizzElement & { mode: "edit" | "view" } = $props();
+    let {
+        data = $bindable(),
+    }: ElementProps<QuizzElement> & { mode: "edit" | "view" } = $props();
 
     let selectedIndex: number | null = $state(null);
     let issubmitted = $state(false);
@@ -37,11 +43,13 @@
     }
 </script>
 
-<Base data={data as BaseElement}>
+<Base bind:data={data as BaseElement}>
     <div
         class="bg-neutral-50 overflow-hidden border-2 border-[#ddd] rounded-lg p-4 text-left w-full h-full font-sans"
     >
-        <h3 class="mt-0 mb-5 text-neutral-900" contenteditable="true">{data.question}</h3>
+        <h3 class="mt-0 mb-5 text-neutral-900" contenteditable="true">
+            {data.question}
+        </h3>
 
         <div class="flex flex-col gap-2.5">
             {#each data.options as option, index}
@@ -52,7 +60,8 @@
                             "border-blue-500 bg-blue-200 font-bold":
                                 selectedIndex === index,
                             "border-green-500 bg-green-200 text-green-950":
-                                issubmitted && index === data.correctAnswerIndex,
+                                issubmitted &&
+                                index === data.correctAnswerIndex,
                             "border-red-500 bg-red-200 text-red-950":
                                 issubmitted &&
                                 selectedIndex === index &&

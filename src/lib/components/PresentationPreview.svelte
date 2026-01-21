@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getImageURL } from "$lib/db";
+    import { getImageURL } from "$lib/db/images";
     import type { Presentation } from "$lib/types/presentation";
 
     const { presentation }: { presentation: Presentation } = $props();

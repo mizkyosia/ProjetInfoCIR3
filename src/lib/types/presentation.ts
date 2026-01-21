@@ -2,8 +2,6 @@
 export type Presentation = {
     id: string;
     title: string;
-    width: number;
-    height: number;
     slides: Slide[];
     createdAt: number;
     updatedAt: number;
@@ -11,6 +9,8 @@ export type Presentation = {
 
 export type Slide = {
     id: string;
+    width: number;
+    height: number;
     background: {
         type: "color" | "image";
         value: string;
@@ -81,6 +81,8 @@ export type ShapeElement = BaseElement & {
     type: "shape";
     shapeType: ShapeType;
 };
+
+export type ElementProps<T extends Element> = { data: T };
 
 export function createPresentationElement<T extends keyof ElementMap>(
     type: T,

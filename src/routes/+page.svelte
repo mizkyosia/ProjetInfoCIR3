@@ -1,6 +1,6 @@
 <script lang="ts">
     import PresentationPreview from "$lib/components/PresentationPreview.svelte";
-    import { listPresentations } from "$lib/db/presentations";
+    import { listPresentations } from "$lib/db/presentations.svelte";
     import type { Presentation } from "$lib/types/presentation";
 
     let isHovered = false;

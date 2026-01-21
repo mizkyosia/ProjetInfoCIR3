@@ -1,6 +1,5 @@
 <script lang="ts">
     import Export from "$lib/components/Export.svelte";
-    import Image from "$lib/components/widgets/Image.svelte";
 
     // Placeholder data for the sidebar items
     const sidebarItems = [
@@ -21,18 +20,19 @@
         { icon: "📂", label: "Projects" },
     ];
 
-    import Quizz from "$lib/components/widgets/Quizz.svelte";
-    import Table from "$lib/components/widgets/Table.svelte";
     import { listImageURLs, getImageURL, saveImage } from "$lib/db/images";
-    import Forms from "$lib/components/widgets/Shape.svelte";
-    import {
-        createPresentationElement,
-        type Element,
-        type QuizzElement,
-    } from "$lib/types/presentation";
-    import { onDestroy, onMount } from "svelte";
+    import Shape from "$lib/components/widgets/Shape.svelte";
+    import { createPresentationElement } from "$lib/types/presentation";
+    import { createContext, onMount } from "svelte";
+    import { editorStore, type EditorStore } from "$lib/state.svelte.js";
+    import { savePresentation } from "$lib/db/presentations.svelte";
+    import { beforeNavigate } from "$app/navigation";
+
+    let { children, data } = $props();
+
+    editorStore.presentation = data.presentation;
+
     let openPanel = $state("");
-    let canvasElements: Element[] = $state([]);
     let zoom = $state(1);
     let pan = $state({ x: 0, y: 0 });
     let isSidebarOpen = $state(false);
@@ -111,10 +111,7 @@
 
         const url = (await getImageURL(imageId)) as string;
 
-        canvasElements.unshift(
-            createPresentationElement("image", { assetId: imageId }),
-        );
-        uploadedImages.push({ url, id: imageId });
+        uploadedImages.unshift({ url, id: imageId });
     }
 
     // Resize
@@ -123,10 +120,6 @@
     let boardWidth = $state(800);
     let boardHeight = $state(450);
     let showResizePopup = $state(false);
-
-    function toggleResizePopup() {
-        showResizePopup = !showResizePopup;
-    }
 
     function closeResizePopup() {
         showResizePopup = false;
@@ -176,7 +169,20 @@
     let resizeBtnEl: HTMLElement | undefined = $state();
     let resizePopupEl: HTMLElement | undefined = $state();
 
-    function handleDocClick(e: MouseEvent) {
+    onMount(() => {
+        const unsubscribe = beforeNavigate(({ from, to, cancel }) => {
+            console.log("Leaving page", from?.url, "→", to?.url);
+
+            // example: save presentation before navigating
+            savePresentation(editorStore.presentation);
+        });
+
+        return unsubscribe; // optional cleanup
+    });
+</script>
+
+<svelte:document
+    onpointerdown={(e) => {
         if (!showResizePopup) return;
 
         // ✅ Si on clique sur le handle, on ne ferme PAS le popup
@@ -195,17 +201,8 @@
         if (!clickedInsidePopup && !clickedOnButton) {
             showResizePopup = false;
         }
-    }
-
-    onMount(() => {
-        // capture=true : on intercepte avant que d'autres éléments bloquent le clic
-        document.addEventListener("pointerdown", handleDocClick, true);
-    });
-
-    onDestroy(() => {
-        document.removeEventListener("pointerdown", handleDocClick, true);
-    });
-</script>
+    }}
+/>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
     <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
@@ -288,10 +285,12 @@
                 {#each uploadedImages as img (img.id)}
                     <button
                         onclick={() => {
-                            canvasElements.push(
-                                createPresentationElement("image", {
-                                    assetId: img.id,
-                                }),
+                            editorStore.updateSlide((slide) =>
+                                slide.elements.push(
+                                    createPresentationElement("image", {
+                                        assetId: img.id,
+                                    }),
+                                ),
                             );
                         }}
                     >
@@ -339,12 +338,14 @@
                                 hoverCol = c + 1;
                             }}
                             onclick={() => {
-                                canvasElements.push(
-                                    createPresentationElement("table", {
-                                        table: new Array(hoverRow).fill(
-                                            new Array(hoverCol),
-                                        ),
-                                    }),
+                                editorStore.updateSlide((s) =>
+                                    s.elements.push(
+                                        createPresentationElement("table", {
+                                            table: new Array(hoverRow).fill(
+                                                new Array(hoverCol),
+                                            ),
+                                        }),
+                                    ),
                                 );
                             }}
                             aria-label="{r + 1}x{c + 1}"
@@ -359,7 +360,9 @@
         >
             <button
                 onclick={() => {
-                    canvasElements.push(createPresentationElement("quizz"));
+                    editorStore.updateSlide((s) =>
+                        s.elements.push(createPresentationElement("quizz")),
+                    );
                 }}>Ajouter quizz</button
             >
         </div>
@@ -367,19 +370,21 @@
         <div
             class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
         >
-            <Forms
+            <Shape
                 mode="sidebar"
                 onSelect={(t) => {
-                    canvasElements.push(
-                        createPresentationElement("shape", {
-                            shapeType: t,
-                            fillColor: "#0000aa",
-                            borderColor: "#0000cc",
-                            borderThickness: 2,
-                        }),
+                    editorStore.updateSlide((s) =>
+                        s.elements.push(
+                            createPresentationElement("shape", {
+                                shapeType: t,
+                                fillColor: "#0000aa",
+                                borderColor: "#0000cc",
+                                borderThickness: 2,
+                            }),
+                        ),
                     );
                 }}
-                {...createPresentationElement("shape")}
+                data={createPresentationElement("shape")}
             />
         </div>
     {/if}
@@ -451,19 +456,7 @@
                 class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
                 style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px;"
             >
-                <!-- Dropped Elements -->
-                {#each canvasElements as element (element.id)}
-                    {#if element.type === "image"}
-                        <Image {...element} />
-                    {:else if element.type === "shape"}
-                        <Forms {...element} mode="canvas" />
-                    {:else if element.type === "table"}
-                        <Table {...element} />
-                    {:else if element.type === "quizz"}
-                        <Quizz mode="view" {...element} />
-                    {/if}
-                {/each}
-
+                {@render children()}
                 <!-- ✅ Handle resize (coin bas-droit) -->
                 {#if showResizePopup}
                     <div

@@ -1,8 +1,12 @@
 <script lang="ts">
-    import type { BaseElement, TableElement } from "$lib/types/presentation";
+    import type {
+        BaseElement,
+        ElementProps,
+        TableElement,
+    } from "$lib/types/presentation";
     import Base from "./Base.svelte";
 
-    let data: TableElement = $props();
+    let { data = $bindable() }: ElementProps<TableElement> = $props();
 
     let width = 300;
     let height = 150;
@@ -35,7 +39,7 @@
     }
 </script>
 
-<Base data={data as BaseElement}>
+<Base bind:data={data as BaseElement}>
     <div
         class="flex-1 w-full h-full overflow-hidden relative"
         oncontextmenu={handleContext}
