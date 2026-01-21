@@ -1,4 +1,5 @@
 <script>
+    
     // Placeholder data for the sidebar items
     const sidebarItems = [
         { icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>', label: 'Photo' },
@@ -11,6 +12,8 @@
 
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
+import Export from '$lib/Export.svelte';
+
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -219,7 +222,7 @@ function toggleSidebar() {
         <!-- Top Bar -->
         <header class="h-14 bg-linear-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
             <div class="flex items-center space-x-4">
-                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
+                <Export />
                 <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
@@ -232,6 +235,7 @@ function toggleSidebar() {
             <!-- The White Board / Page -->
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <div 
+                id="presentation"
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
