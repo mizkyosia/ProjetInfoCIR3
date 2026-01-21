@@ -148,7 +148,10 @@ awesome.min.css">
                     <i class="fa fa-align-justify"></i>
                 </button>
             </div>
-
+            <div class="flex space-x-1">
+                <button on:click={() => applyCommand("insertUnorderedList")} class="px-3 py-1 border rounded bg-white hover:bg-gray-50" title="Liste à puces"><i class="fa fa-list-ul"></i></button>
+                <button on:click={() => applyCommand("insertOrderedList")} class="px-3 py-1 border rounded bg-white hover:bg-gray-50" title="Liste numérotée"><i class="fa fa-list-ol"></i></button>
+            </div>
             <div class="h-8 w-[1px] bg-gray-300"></div>
 
             <!-- Couleur -->
@@ -184,3 +187,8 @@ awesome.min.css">
         </div>
     </div>
 </div>
+<div
+    contenteditable="true"
+    bind:innerHTML={data.html}
+    class="bg-gray-50 rounded p-3 border border-gray-200 min-h-[200px] list-decimal list-inside"
+></div>

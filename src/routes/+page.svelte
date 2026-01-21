@@ -34,7 +34,7 @@
             >
                 Commencer un nouveau design
         </a>
-            <a href='/templates' class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all">
+            <a href='/test' class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all">
                 Templates déjà crées 
             </a>
         </div>
