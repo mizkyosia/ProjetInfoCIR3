@@ -16,7 +16,7 @@
       type: 'default',
       description: ''
   });
-
+// Functions to handle modal
   function openModal() {
       showModal = true;
       newNodeData = { label: '', type: 'default', description: '' };

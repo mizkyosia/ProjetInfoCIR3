@@ -49,7 +49,7 @@
     {/if}
   </div>
 
-  <!-- Right Handles -->
+  <!-- Right Handle -->
   <Handle 
     type="target" 
     position={Position.Right} 
