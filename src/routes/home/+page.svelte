@@ -14,9 +14,10 @@
 
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
-import Fullscreen from "$lib/Fullscreen.svelte";
-import Resize from "$lib/Resize.svelte";
+import Fullscreen from '$lib/Fullscreen.svelte';
+import Resize from '$lib/Resize.svelte';
 import Arbo from '$lib/Arbo.svelte';
+import Charts from '$lib/Charts1.svelte';
 import treeStructureImg from '../../tree-structure.png';
 
 let isSidebarOpen = $state(true);
@@ -274,13 +275,16 @@ function toggleSidebar() {
     {:else if openPannel === "Structure"}
         <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
             <Arbo />
-            <!-- Resize Handle -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div 
+            <div>
                 class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
                 onmousedown={startResizeSidebar}
-            ></div>
+            </div>
         </div>
+    {:else if openPannel === "Charts"}
+        <div class="w-300 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+             <Charts />
+        </div>
+        
     {/if}
     
     <!-- Main Workspace (Canvas Area) -->

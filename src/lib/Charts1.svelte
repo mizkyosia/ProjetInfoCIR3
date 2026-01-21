@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Charts from '../../lib/Charts.svelte';
+  import Charts from './Charts.svelte';
   import { fade, slide } from 'svelte/transition';
 
   interface Serie { label: string; valeurs: number[]; couleur: string; }
@@ -21,11 +21,11 @@
   function ajouterGraphique(type: string) {
     const newId = Date.now();
     graphiques = [...graphiques, {
-      id: newId, type, x: 150, y: 150, w: 450, h: 300,
-      etiquettes: ["Jan", "Fév", "Mar"],
+      id: newId, type, x: 450, y: 150, w: 450, h: 300,
+      etiquettes: ["", "", ""],
       tableau: [
-        { label: "Série 1", valeurs: [30, 20, 45], couleur: "#4FD1C5" },
-        { label: "Série 2", valeurs: [15, 30, 25], couleur: "#F6AD55" }
+        { label: "Série 1", valeurs: [, , ], couleur: "#4FD1C5" },
+        { label: "Série 2", valeurs: [, , ], couleur: "#F6AD55" }
       ]
     }];
     selectedId = newId;
