@@ -1,19 +1,23 @@
 <script>
-    
     // Placeholder data for the sidebar items
     const sidebarItems = [
+        { icon: 'T', label: 'Text' },
         { icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>', label: 'Photo' },
         { icon: '<i class="fa fa-square" aria-hidden="true"></i>', label: 'Forms' },
-        { icon: 'T', label: 'Text' },
         { icon: '<i class="fa fa-table" aria-hidden="true"></i>', label: 'Tabs' },
+        { icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>', label: 'Charts' },
         { icon: '❓', label: 'Quizz' },
         { icon: '📂', label: 'Projects' },
+        { icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`, label: 'Structure' },
+        
     ];
 
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
-import Export from '$lib/Export.svelte';
-
+import Fullscreen from "$lib/Fullscreen.svelte";
+import Resize from "$lib/Resize.svelte";
+import Arbo from '$lib/Arbo.svelte';
+import treeStructureImg from '../../tree-structure.png';
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -21,6 +25,75 @@ let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
 let boardElement; // Reference to the board div
+let fullscreenComponent;
+let isFull = $state(false);
+
+// ✅ Taille "réelle" de la white board (modifiable)
+let boardWidth = $state(800);
+let boardHeight = $state(450);
+let boardColor = $state("#ffffff");
+let showResizePopup = $state(false);
+
+// Sidebar Resizing
+let sidebarWidth = $state(320); // Default width (w-80)
+let isResizingSidebar = $state(false);
+
+function startResizeSidebar(event) {
+    isResizingSidebar = true;
+    event.preventDefault(); // Prevent text selection
+}
+
+function stopResizeSidebar() {
+    isResizingSidebar = false;
+}
+
+function resizeSidebar(event) {
+    if (!isResizingSidebar) return;
+    
+    // Sidebar width = mouse X position - Nav Bar width (w-20 = 80px)
+    const newWidth = event.clientX - 80;
+    
+    // Constraints
+    if (newWidth >= 200 && newWidth <= 800) {
+        sidebarWidth = newWidth;
+    }
+}
+
+let previousZoom = 1;
+let previousPan = { x: 0, y: 0 };
+let wasFull = false;
+
+$effect(() => {
+    if (isFull) {
+        if (!wasFull) {
+             // Just entered fullscreen: save state
+            previousZoom = zoom;
+            previousPan = { ...pan };
+            wasFull = true;
+        }
+
+        // Simple "contain" logic for Presentation Mode
+        const padding = 20;
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        
+        const scaleX = (screenW - padding) / boardWidth;
+        const scaleY = (screenH - padding) / boardHeight;
+        // Don't upscale indefinitely if board is tiny? Or yes? Projector mode implies filling screen.
+        // Let's cap at 5x.
+        const fitScale = Math.min(scaleX, scaleY, 5);
+        
+        zoom = fitScale;
+        pan = { x: 0, y: 0 };
+    } else {
+        if (wasFull) {
+            // Just exited fullscreen: restore state
+            zoom = previousZoom;
+            pan = previousPan;
+            wasFull = false;
+        }
+    }
+});
 
 // Drawing State
 let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
@@ -172,25 +245,10 @@ function toggleSidebar() {
 }
 </script>
 
-
+<svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
     
-    <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div 
-        class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
-        class:hover:bg-gray-800={isSidebarOpen}
-        class:hover:bg-gray-300={!isSidebarOpen}
-        onclick={toggleSidebar}
-        title="Toggle Menu"
-    >
-        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-        <div class="w-6 h-0.5 mb-1 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-        <div class="w-6 h-0.5 transition-colors" class:bg-white={isSidebarOpen} class:bg-gray-800={!isSidebarOpen}></div>
-    </div>
-
     <!-- Left Sidebar (Navigation) -->
     {#if isSidebarOpen}
         <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20">
@@ -213,21 +271,55 @@ function toggleSidebar() {
         <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
             <Forms mode="sidebar" onSelect={handleSelectShape} />
         </div>
+    {:else if openPannel === "Structure"}
+        <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
+            <Arbo />
+            <!-- Resize Handle -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div 
+                class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
+                onmousedown={startResizeSidebar}
+            ></div>
+        </div>
     {/if}
-
-
+    
     <!-- Main Workspace (Canvas Area) -->
     <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
         
         <!-- Top Bar -->
-        <header class="h-14 bg-linear-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
+        <header class="h-14 bg-linear-to-r from-red-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
             <div class="flex items-center space-x-4">
-                <Export {canvasElements} />
+                <!-- Burger Menu -->
+                <button 
+                    class="p-1 mr-1 cursor-pointer rounded hover:bg-white/10 flex flex-col justify-center"
+                    onclick={toggleSidebar}
+                    title="Toggle Menu"
+                >
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 bg-white/90"></div>
+                </button>
 
-                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">Resize</span>
+                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
+                
+                <!-- Resize Button & Popup -->
+                 <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:color={boardColor}
+                    bind:visible={showResizePopup} 
+                    type="menu" 
+                 />
+
                 <div class="h-4 w-px bg-white/30"></div>
-                <span class="text-sm opacity-90">Sans nom  1920x1080 </span>
+                <span class="text-sm opacity-90">Sans nom  {boardWidth}x{boardHeight} </span>
             </div>
+            <button 
+                class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
+                onclick={() => fullscreenComponent?.fsToggle()}
+            >
+                <i class="fa fa-arrows-alt" aria-hidden="true"></i> Full screen
+            </button>
         </header>
 
         <!-- Canvas Container -->
@@ -235,22 +327,28 @@ function toggleSidebar() {
             
             <!-- The White Board / Page -->
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+             <Fullscreen bind:isFull={isFull} bind:this={fullscreenComponent}>
             <div 
-                id="presentation"
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
-                class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair" 
-                
-                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
+                class="bg-white shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair fs"
+                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px; background-color:{boardColor};"
                 ondrop={handleDrop} 
                 ondragover={handleDragOver}
                 onmousedown={handleMouseDown}
                 onmousemove={handleMouseMove}
                 onmouseup={handleMouseUp}
-                
             >
-                
+                <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:visible={showResizePopup}
+                    type="handle"
+                    zoom={zoom}
+                />
+
+                <!-- Dropped Elements -->
                 {#each canvasElements as element (element.id)}
                     {#if element.type === 'quizz'}
                          <div 
@@ -271,6 +369,7 @@ function toggleSidebar() {
                     {/if}
                 {/each}
             </div>
+            </Fullscreen>
 
             <!-- Footer / Zoom Controls -->
             <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
