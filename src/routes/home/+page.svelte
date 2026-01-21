@@ -30,7 +30,7 @@
         type Element,
         type QuizzElement,
     } from "$lib/types/presentation";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     let openPanel = $state("");
     let canvasElements: Element[] = $state([]);
     let zoom = $state(1);
@@ -116,6 +116,95 @@
         );
         uploadedImages.push({ url, id: imageId });
     }
+
+    // Resize
+
+    // ✅ Taille "réelle" de la white board (modifiable)
+    let boardWidth = $state(800);
+    let boardHeight = $state(450);
+    let showResizePopup = $state(false);
+
+    function toggleResizePopup() {
+        showResizePopup = !showResizePopup;
+    }
+
+    function closeResizePopup() {
+        showResizePopup = false;
+    }
+
+    // ✅ Resize state
+    let resizing = $state(false);
+    let startX = $state(0);
+    let startY = $state(0);
+    let startW = $state(0);
+    let startH = $state(0);
+
+    const MIN_W = 200;
+    const MIN_H = 120;
+
+    function startResize(e: MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        resizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = boardWidth;
+        startH = boardHeight;
+
+        // capture du pointeur pour un drag fluide
+        // e.currentTarget?.setPointerCapture?.(e.pointerId);
+
+        window.addEventListener("pointermove", onResizeMove);
+        window.addEventListener("pointerup", stopResize, { once: true });
+    }
+
+    function onResizeMove(e: MouseEvent) {
+        if (!resizing) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        boardWidth = Math.max(MIN_W, Math.round(startW + dx));
+        boardHeight = Math.max(MIN_H, Math.round(startH + dy));
+    }
+
+    function stopResize() {
+        resizing = false;
+        window.removeEventListener("pointermove", onResizeMove);
+    }
+    let resizeBtnEl: HTMLElement | undefined = $state();
+    let resizePopupEl: HTMLElement | undefined = $state();
+
+    function handleDocClick(e: MouseEvent) {
+        if (!showResizePopup) return;
+
+        // ✅ Si on clique sur le handle, on ne ferme PAS le popup
+        const el = e.target;
+        if (el instanceof Element && el.closest(".resize-handle")) {
+            return;
+        }
+
+        const target = e.target;
+
+        const clickedInsidePopup =
+            resizePopupEl && resizePopupEl.contains(target as Node | null);
+        const clickedOnButton =
+            resizeBtnEl && resizeBtnEl.contains(target as Node | null);
+
+        if (!clickedInsidePopup && !clickedOnButton) {
+            showResizePopup = false;
+        }
+    }
+
+    onMount(() => {
+        // capture=true : on intercepte avant que d'autres éléments bloquent le clic
+        document.addEventListener("pointerdown", handleDocClick, true);
+    });
+
+    onDestroy(() => {
+        document.removeEventListener("pointerdown", handleDocClick, true);
+    });
 </script>
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
@@ -303,13 +392,50 @@
         >
             <div class="flex items-center space-x-4">
                 <Export />
-                <span
+                <button
+                    onclick={() => (showResizePopup = true)}
                     class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer"
-                    >Resize</span
+                    >Resize</button
                 >
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90">Sans nom 1920x1080 </span>
             </div>
+
+            {#if showResizePopup}
+                <!-- Overlay invisible pour fermer au clic extérieur -->
+                <button
+                    class="fixed inset-0 cursor-default"
+                    style="background: transparent;"
+                    onclick={closeResizePopup}
+                    aria-label="Close resize popup"
+                    type="button"
+                ></button>
+
+                <!-- Popup -->
+                <div class="resize-popup" bind:this={resizePopupEl}>
+                    <div class="resize-title">Whiteboard size</div>
+
+                    <div class="resize-row">
+                        <span class="label">Width</span>
+                        <span class="value">{boardWidth}px</span>
+                    </div>
+
+                    <div class="resize-row">
+                        <span class="label">Height</span>
+                        <span class="value">{boardHeight}px</span>
+                    </div>
+
+                    <div class="resize-big">
+                        {boardWidth} × {boardHeight}
+                    </div>
+
+                    {#if resizing}
+                        <div class="resize-hint">
+                            Redimensionnement en cours…
+                        </div>
+                    {/if}
+                </div>
+            {/if}
         </header>
 
         <!-- Canvas Container -->
@@ -322,8 +448,8 @@
                 bind:this={boardElement}
                 role="region"
                 aria-label="main"
-                class="bg-white w-200 h-112.5 shadow-xl relative group overflow-hidden origin-center will-change-transform"
-                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom})"
+                class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
+                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px;"
             >
                 <!-- Dropped Elements -->
                 {#each canvasElements as element (element.id)}
@@ -337,6 +463,15 @@
                         <Quizz mode="view" {...element} />
                     {/if}
                 {/each}
+
+                <!-- ✅ Handle resize (coin bas-droit) -->
+                {#if showResizePopup}
+                    <div
+                        class="resize-handle"
+                        onpointerdown={startResize}
+                        title="Redimensionner"
+                    ></div>
+                {/if}
             </div>
 
             <!-- Footer / Zoom Controls -->
@@ -364,3 +499,68 @@
         </div>
     </main>
 </div>
+
+<style>
+    /* Petit carré en bas à droite pour redimensionner */
+    .resize-handle {
+        position: absolute;
+        right: -7px;
+        bottom: -7px;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border: 2px solid rgb(99, 102, 241); /* indigo-500 */
+        border-radius: 4px;
+        cursor: nwse-resize;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .resize-handle:hover {
+        transform: scale(1.05);
+    }
+    .resize-popup {
+        position: absolute;
+        top: 44px;
+        left: 0;
+        width: 220px;
+        background: white;
+        color: #111;
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        z-index: 60;
+    }
+
+    .resize-title {
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .resize-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+    .resize-row .value {
+        font-weight: 600;
+        color: #111;
+    }
+
+    .resize-big {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: #f3f4f6; /* gray-100 */
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .resize-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #4f46e5; /* indigo */
+    }
+</style>
