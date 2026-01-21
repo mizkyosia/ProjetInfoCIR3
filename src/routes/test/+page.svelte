@@ -69,7 +69,7 @@
         bind:height={zone.height} 
         bind:content={zone.content} 
         on:delete={() => supprimerZone(zone.id)} 
-      />
+      />    
     {/each}
 
     {#if isDrawing && currentZone}
