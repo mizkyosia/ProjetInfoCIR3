@@ -93,10 +93,28 @@
 
 
 
-  function sendLink() {
-    console.log("Sending link...");
-    showShareMenu = false;
-  }
+ function sendLink() {
+  const id = crypto.randomUUID();
+
+  // IMPORTANT: même clé que le viewer -> "pres:"
+  localStorage.setItem(
+    "pres:" + id,
+    JSON.stringify({ canvasElements })
+  );
+
+  const url = `${window.location.origin}/viewer#${id}`;
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => alert("Lien copié !"))
+    .catch(() => {
+      // fallback si clipboard bloque
+      prompt("Copie ce lien :", url);
+    });
+
+  showShareMenu = false;
+}
+
 </script>
 
 <div class="relative">
