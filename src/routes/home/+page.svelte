@@ -8,6 +8,7 @@
         { icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>', label: 'Charts' },
         { icon: '❓', label: 'Quizz' },
         { icon: '📂', label: 'Projects' },
+        { icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`, label: 'Structure' },
         
     ];
 
@@ -15,6 +16,8 @@ import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
 import Fullscreen from "$lib/Fullscreen.svelte";
 import Resize from "$lib/Resize.svelte";
+import Arbo from '$lib/Arbo.svelte';
+import treeStructureImg from '../../tree-structure.png';
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -30,6 +33,31 @@ let boardWidth = $state(800);
 let boardHeight = $state(450);
 let boardColor = $state("#ffffff");
 let showResizePopup = $state(false);
+
+// Sidebar Resizing
+let sidebarWidth = $state(320); // Default width (w-80)
+let isResizingSidebar = $state(false);
+
+function startResizeSidebar(event) {
+    isResizingSidebar = true;
+    event.preventDefault(); // Prevent text selection
+}
+
+function stopResizeSidebar() {
+    isResizingSidebar = false;
+}
+
+function resizeSidebar(event) {
+    if (!isResizingSidebar) return;
+    
+    // Sidebar width = mouse X position - Nav Bar width (w-20 = 80px)
+    const newWidth = event.clientX - 80;
+    
+    // Constraints
+    if (newWidth >= 200 && newWidth <= 800) {
+        sidebarWidth = newWidth;
+    }
+}
 
 let previousZoom = 1;
 let previousPan = { x: 0, y: 0 };
@@ -217,6 +245,7 @@ function toggleSidebar() {
 }
 </script>
 
+<svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
     
@@ -242,9 +271,18 @@ function toggleSidebar() {
         <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
             <Forms mode="sidebar" onSelect={handleSelectShape} />
         </div>
+    {:else if openPannel === "Structure"}
+        <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
+            <Arbo />
+            <!-- Resize Handle -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div 
+                class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
+                onmousedown={startResizeSidebar}
+            ></div>
+        </div>
     {/if}
-
-
+    
     <!-- Main Workspace (Canvas Area) -->
     <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
         
