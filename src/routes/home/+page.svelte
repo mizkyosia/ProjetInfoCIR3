@@ -20,11 +20,22 @@ import Arbo from '$lib/Arbo.svelte';
 import Charts from '$lib/Charts1.svelte';
 import treeStructureImg from '../../tree-structure.png';
 
+
+let projectTitle = $state("Sans nom");
+let projectResolution = $state("1920x1080");
+ 
+
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
+    /**
+     * @type {any[] | null | undefined}
+     */
 let canvasElements = $state([]);
 let zoom = $state(1);
 let pan = $state({ x: 0, y: 0 });
+    /**
+     * @type {HTMLDivElement}
+     */
 let boardElement; // Reference to the board div
 let fullscreenComponent;
 let isFull = $state(false);
@@ -316,7 +327,11 @@ function toggleSidebar() {
                  />
 
                 <div class="h-4 w-px bg-white/30"></div>
-                <span class="text-sm opacity-90">Sans nom  {boardWidth}x{boardHeight} </span>
+
+                <div class="flex items-center text-sm opacity-90">
+                    <input bind:value={projectTitle} class="bg-transparent border-none hover:bg-white/10 focus:bg-white/20 focus:outline-none rounded px-1 transition-colors w-auto" style="width: {projectTitle.length + 1}ch" />
+                    <span class="ml-2">{projectResolution}</span>
+                </div>
             </div>
             <button 
                 class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"

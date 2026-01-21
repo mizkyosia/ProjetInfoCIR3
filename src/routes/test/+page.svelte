@@ -1,90 +1,47 @@
-<script lang="ts">
-  import ZoneDT from '$lib/zonedt.svelte';
+<script>
+    import Toolbar from '$lib/Toolbar.svelte';
 
-  let zones: { id: string, x: number, y: number, width: number, height: number, content: string }[] = []; 
-  let isTextMode = false; 
-  let isDrawing = false; 
-  let startX = 0;
-  let startY = 0;
-  let currentZone: any = null;
+    // On crée une variable qui contient le texte de test
+    let testData = $state({
+        html: "<h2>Bienvenue dans le test !</h2><p>Essaie de mettre ce texte en <b>gras</b> ou en <i>italique</i>.</p>"
+    });
 
-  function handleMouseDown(e: MouseEvent & { currentTarget: EventTarget & HTMLDivElement }) {
-    if (!isTextMode) return;
-    if ((e.target as HTMLElement).closest('.wrapper')) return;
-
-    isDrawing = true;
-    const rect = e.currentTarget.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-    currentZone = { x: startX, y: startY, width: 0, height: 0 };
-  }
-
-  function handleMouseMove(e: MouseEvent & { currentTarget: EventTarget & HTMLDivElement }) {
-    if (!isDrawing || !currentZone) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-
-    currentZone.width = Math.abs(currentX - startX);
-    currentZone.height = Math.abs(currentY - startY);
-    currentZone.x = Math.min(currentX, startX);
-    currentZone.y = Math.min(currentY, startY);
-    currentZone = currentZone;
-  }
-
-  function handleMouseUp() {
-    if (isDrawing && currentZone) {
-      if (currentZone.width > 20 && currentZone.height > 20) {
-        zones = [...zones, { 
-            id: crypto.randomUUID(), 
-            ...currentZone,
-            content: "" 
-        }];
-      }
-      isDrawing = false;
-      currentZone = null;
-      isTextMode = false;
-    }
-  }
-
-  // FONCTION DE SUPPRESSION
-  function supprimerZone(id: string) {
-    zones = zones.filter(z => z.id !== id);
-  }
+    let showPreview = $state(false);
 </script>
 
-<div class="container">
-  <div class="toolbar">
-    <button class="btn" class:active={isTextMode} on:click={() => isTextMode = !isTextMode}>
-      {isTextMode ? "Annuler le tracé" : "➕ Créer une zone de texte"}
-    </button>
-  </div>
+<div class="min-h-screen bg-gray-200 p-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+            <h1 class="text-xl font-bold text-indigo-600">🧪 Labo de Test : Toolbar.svelte</h1>
+            <button 
+                onclick={() => showPreview = !showPreview}
+                class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition"
+            >
+                {showPreview ? 'Modifier' : 'Voir le rendu final'}
+            </button>
+        </div>
 
-  <div class="canvas" class:crosshair={isTextMode} on:mousedown={handleMouseDown} on:mousemove={handleMouseMove} on:mouseup={handleMouseUp}>
-    {#each zones as zone (zone.id)}
-      <ZoneDT 
-        bind:x={zone.x} 
-        bind:y={zone.y} 
-        bind:width={zone.width} 
-        bind:height={zone.height} 
-        bind:content={zone.content} 
-        on:delete={() => supprimerZone(zone.id)} 
-      />    
-    {/each}
+        <div class="bg-white rounded-xl shadow-2xl overflow-hidden border-2 border-indigo-100">
+            {#if !showPreview}
+                <Toolbar bind:data={testData} />
+            {:else}
+                <div class="p-8 prose max-w-none">
+                    {@html testData.html}
+                </div>
+            {/if}
+        </div>
 
-    {#if isDrawing && currentZone}
-      <div class="preview" style="left: {currentZone.x}px; top: {currentZone.y}px; width: {currentZone.width}px; height: {currentZone.height}px;"></div>
-    {/if}
-  </div>
+        <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-xs overflow-auto h-40">
+            <p class="text-gray-400 mb-2">// Code HTML généré par ton Toolbar.svelte :</p>
+            {testData.html}
+        </div>
+
+    </div>
 </div>
 
 <style>
-  /* Le CSS reste identique à ton précédent message */
-  .container { height: 100vh; display: flex; flex-direction: column; background: #eee; }
-  .toolbar { padding: 20px; background: #222; display: flex; justify-content: center; z-index: 10; }
-  .btn { padding: 12px 24px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; background: #7c3aed; color: white; transition: 0.3s; }
-  .btn.active { background: #ef4444; }
-  .canvas { flex: 1; position: relative; background: white; margin: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; user-select: none; }
-  .crosshair { cursor: crosshair; }
-  .preview { position: absolute; border: 2px dashed #7c3aed; background: rgba(124, 58, 237, 0.05); pointer-events: none; z-index: 50; }
+    /* Petit correctif pour que les listes s'affichent bien pendant le test */
+    :global(.prose ul) { list-style-type: disc; padding-left: 1.5rem; }
+    :global(.prose ol) { list-style-type: decimal; padding-left: 1.5rem; }
 </style>

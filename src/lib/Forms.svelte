@@ -1,5 +1,5 @@
 <script module>
-    export function createShape(type) {
+    export function createShape(type: never) {
         return {
             shapeType: type,
             width: 0, 
