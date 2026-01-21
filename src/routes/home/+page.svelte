@@ -1,307 +1,388 @@
 <script>
-  // Placeholder data for the sidebar items
-  const sidebarItems = [
-    { icon: '🎨', label: 'Design' },
-    { icon: '🧩', label: 'Elements' },
-    { icon: 'T', label: 'Text' },
-    { icon: '☁️', label: 'Uploads' },
-    { icon: '🖊️', label: 'Draw' },
-    { icon: '📂', label: 'Projects' },
-    { icon: '📱', label: 'Apps' }
-  ];
+    // Placeholder data for the sidebar items
+    const sidebarItems = [
+        { icon: 'T', label: 'Text' },
+        { icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>', label: 'Photo' },
+        { icon: '<i class="fa fa-square" aria-hidden="true"></i>', label: 'Forms' },
+        { icon: '<i class="fa fa-table" aria-hidden="true"></i>', label: 'Tabs' },
+        { icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>', label: 'Charts' },
+        { icon: '❓', label: 'Quizz' },
+        { icon: '📂', label: 'Projects' },
+        { icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`, label: 'Structure' },
+        
+    ];
 
-  // Placeholder data for templates
-  const templates = [
-    { color: 'bg-blue-200', title: 'Infographic' },
-    { color: 'bg-pink-200', title: 'Instagram Post' },
-    { color: 'bg-yellow-200', title: 'Presentation' },
-    { color: 'bg-green-200', title: 'Poster' },
-    { color: 'bg-purple-200', title: 'Resume' },
-    { color: 'bg-orange-200', title: 'Logo' }
-  ];
+import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
+import Forms, { createShape } from '$lib/Forms.svelte';
+import Fullscreen from "$lib/Fullscreen.svelte";
+import Resize from "$lib/Resize.svelte";
+import Arbo from '$lib/Arbo.svelte';
+import treeStructureImg from '../../tree-structure.png';
 
-  // ✅ Taille "réelle" de la white board (modifiable)
-  let boardWidth = 800;
-  let boardHeight = 450;
-  let showResizePopup = false;
+let isSidebarOpen = $state(true);
+let openPannel = $state("")
+let canvasElements = $state([]);
+let zoom = $state(1);
+let pan = $state({ x: 0, y: 0 });
+let boardElement; // Reference to the board div
+let fullscreenComponent;
+let isFull = $state(false);
 
-function toggleResizePopup() {
-  showResizePopup = !showResizePopup;
+// ✅ Taille "réelle" de la white board (modifiable)
+let boardWidth = $state(800);
+let boardHeight = $state(450);
+let boardColor = $state("#ffffff");
+let showResizePopup = $state(false);
+
+// Sidebar Resizing
+let sidebarWidth = $state(320); // Default width (w-80)
+let isResizingSidebar = $state(false);
+
+function startResizeSidebar(event) {
+    isResizingSidebar = true;
+    event.preventDefault(); // Prevent text selection
 }
 
-function closeResizePopup() {
-  showResizePopup = false;
+function stopResizeSidebar() {
+    isResizingSidebar = false;
 }
 
-
-  // ✅ Resize state
-  let resizing = false;
-  let startX = 0;
-  let startY = 0;
-  let startW = 0;
-  let startH = 0;
-
-  const MIN_W = 200;
-  const MIN_H = 120;
-
-  function startResize(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    resizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startW = boardWidth;
-    startH = boardHeight;
-
-    // capture du pointeur pour un drag fluide
-    e.currentTarget?.setPointerCapture?.(e.pointerId);
-
-    window.addEventListener('pointermove', onResizeMove);
-    window.addEventListener('pointerup', stopResize, { once: true });
-  }
-
-  function onResizeMove(e) {
-    if (!resizing) return;
-
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    boardWidth = Math.max(MIN_W, Math.round(startW + dx));
-    boardHeight = Math.max(MIN_H, Math.round(startH + dy));
-  }
-
-  function stopResize() {
-    resizing = false;
-    window.removeEventListener('pointermove', onResizeMove);
-  }
-  let resizeBtnEl;
-let resizePopupEl;
-
-function handleDocClick(e) {
-  if (!showResizePopup) return;
-
-  // ✅ Si on clique sur le handle, on ne ferme PAS le popup
-  const el = e.target;
-  if (el instanceof Element && el.closest(".resize-handle")) {
-    return;
-  }
-
-  const target = e.target;
-
-  const clickedInsidePopup = resizePopupEl && resizePopupEl.contains(target);
-  const clickedOnButton = resizeBtnEl && resizeBtnEl.contains(target);
-
-  if (!clickedInsidePopup && !clickedOnButton) {
-    showResizePopup = false;
-  }
+function resizeSidebar(event) {
+    if (!isResizingSidebar) return;
+    
+    // Sidebar width = mouse X position - Nav Bar width (w-20 = 80px)
+    const newWidth = event.clientX - 80;
+    
+    // Constraints
+    if (newWidth >= 200 && newWidth <= 800) {
+        sidebarWidth = newWidth;
+    }
 }
 
-import { onMount, onDestroy } from "svelte";
+let previousZoom = 1;
+let previousPan = { x: 0, y: 0 };
+let wasFull = false;
 
-onMount(() => {
-  // capture=true : on intercepte avant que d'autres éléments bloquent le clic
-  document.addEventListener("pointerdown", handleDocClick, true);
+$effect(() => {
+    if (isFull) {
+        if (!wasFull) {
+             // Just entered fullscreen: save state
+            previousZoom = zoom;
+            previousPan = { ...pan };
+            wasFull = true;
+        }
+
+        // Simple "contain" logic for Presentation Mode
+        const padding = 20;
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        
+        const scaleX = (screenW - padding) / boardWidth;
+        const scaleY = (screenH - padding) / boardHeight;
+        // Don't upscale indefinitely if board is tiny? Or yes? Projector mode implies filling screen.
+        // Let's cap at 5x.
+        const fitScale = Math.min(scaleX, scaleY, 5);
+        
+        zoom = fitScale;
+        pan = { x: 0, y: 0 };
+    } else {
+        if (wasFull) {
+            // Just exited fullscreen: restore state
+            zoom = previousZoom;
+            pan = previousPan;
+            wasFull = false;
+        }
+    }
 });
 
-onDestroy(() => {
-  document.removeEventListener("pointerdown", handleDocClick, true);
-});
+// Drawing State
+let drawingTool = $state(null); // 'rectangle' | 'circle' | etc.
+let isDrawing = $state(false);
+let startPoint = $state({ x: 0, y: 0 });
+let currentShapeId = $state(null);
 
+function handleSelectShape(type) {
+    drawingTool = type;
+    // Optional: cursor feedback
+}
+
+function handleMouseDown(event) {
+    if (!drawingTool) return;
+    if (event.button !== 0) return; // Only left click
+
+    isDrawing = true;
+    const rect = boardElement.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / zoom;
+    const y = (event.clientY - rect.top) / zoom;
+    startPoint = { x, y };
+
+    // Create initial shape
+    const newShapeData = createShape(drawingTool);
+
+    const newId = Date.now();
+    currentShapeId = newId;
+    canvasElements = [...canvasElements, { id: newId, type: 'shape', data: newShapeData, x, y }];
+}
+
+function handleMouseMove(event) {
+    if (!isDrawing || !currentShapeId) return;
+
+    const rect = boardElement.getBoundingClientRect();
+    const currentX = (event.clientX - rect.left) / zoom;
+    const currentY = (event.clientY - rect.top) / zoom;
+
+    const width = currentX - startPoint.x;
+    const height = currentY - startPoint.y;
+
+    // find and update the shape
+    const index = canvasElements.findIndex(el => el.id === currentShapeId);
+    if (index !== -1) {
+        const el = canvasElements[index];
+        // Normalize negative width/height (dragging left/up)
+        const finalX = width < 0 ? currentX : startPoint.x;
+        const finalY = height < 0 ? currentY : startPoint.y;
+        const finalW = Math.abs(width);
+        const finalH = Math.abs(height);
+
+        canvasElements[index] = { ...el, x: finalX, y: finalY, data: { ...el.data, width: Math.max(10, finalW), height: Math.max(10, finalH) } };
+    }
+}
+
+function handleMouseUp(event) {
+    if (isDrawing) {
+        isDrawing = false;
+        currentShapeId = null;
+        drawingTool = null; // Reset tool after drawing one shape, or keep it if continuous drawing desired
+        openPannel = ""; // Close panel or keep open? User preference. Closing implies "tool used once".
+    }
+}
+
+function handleDrop(event) {
+    event.preventDefault();
+    const dataString = event.dataTransfer.getData('application/json');
+    if (!dataString) return;
+    
+    try {
+        const { type, data } = JSON.parse(dataString);
+        
+        let finalData = data;
+        // Validate/Normalize data based on type
+        if (type === 'quizz') {
+             finalData = createQuizzFromData(data);
+        } else if (type !== 'quizz') {
+             // Unknown type (Forms usage is different, handled by drawing)
+             return;
+        }
+
+        const canvasRect = event.currentTarget.getBoundingClientRect();
+        // Adjust coordinates based on zoom level
+        const x = (event.clientX - canvasRect.left) / zoom;
+        const y = (event.clientY - canvasRect.top) / zoom;
+        
+        canvasElements = [...canvasElements, { id: Date.now(), type, data: finalData, x, y }];
+    } catch (e) {
+        console.error("Error parsing dropped data", e);
+    }
+}
+
+function handleDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+}
+
+function handleWheel(event) {
+    event.preventDefault();
+
+    if (event.shiftKey) {
+        // Shift + Wheel -> Pan Horizontally
+        // Use deltaY if deltaX is 0 (standard mouse wheel)
+        const delta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
+        pan.x -= delta; 
+    } else if (event.ctrlKey) {
+        // Ctrl + Wheel -> Pan Vertically
+        pan.y -= event.deltaY;
+    } else {
+        // No modifier -> Zoom
+        const rect = boardElement.getBoundingClientRect();
+        const scaleFactor = 0.001;
+        const delta = -event.deltaY * scaleFactor;
+        const newZoom = Math.min(Math.max(zoom + delta, 0.2), 5); // Limit zoom 20% to 500%
+        
+        // Calculate mouse position relative to the board's center
+        const scaleRatio = newZoom / zoom;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const mouseX = event.clientX - centerX;
+        const mouseY = event.clientY - centerY;
+        
+        // Adjust pan to keep the mouse point stable
+        pan.x -= mouseX * (scaleRatio - 1);
+        pan.y -= mouseY * (scaleRatio - 1);
+        
+        zoom = newZoom;
+    }
+}
+
+function zoomIn() {
+    zoom = Math.min(zoom + 0.1, 5);
+}
+
+function zoomOut() {
+    zoom = Math.max(zoom - 0.1, 0.2);
+}
+
+function resetView() {
+    zoom = 1;
+    pan = { x: 0, y: 0 };
+}
+
+function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+    if (!isSidebarOpen) {
+        openPannel = "";
+    }
+}
 </script>
 
-<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
-  <!-- Left Sidebar (Navigation) -->
-  <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 flex-shrink-0">
-    <!-- Burger Menu / Logo placeholder -->
-    <div class="mb-6 p-2 cursor-pointer hover:bg-gray-800 rounded">
-      <div class="w-6 h-0.5 bg-white mb-1"></div>
-      <div class="w-6 h-0.5 bg-white mb-1"></div>
-      <div class="w-6 h-0.5 bg-white"></div>
-    </div>
+<svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
 
-    <!-- Nav Items -->
-    <nav class="flex-1 w-full space-y-2">
-      {#each sidebarItems as item, i}
-        <button
-          class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${
-            i === 0 ? 'bg-gray-800 border-l-4 border-cyan-400' : ''
-          }`}
-        >
-          <span class="text-xl mb-1">{item.icon}</span>
-          <span class="text-xs font-medium">{item.label}</span>
-        </button>
-      {/each}
-    </nav>
-  </aside>
-
-  <!-- Main Workspace (Canvas Area) -->
-  <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
-    <!-- Top Bar -->
-    <header class="h-14 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm flex-shrink-0">
-      <div class="flex items-center space-x-4">
-        <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
-        <div class="relative">
-  <button
-  bind:this={resizeBtnEl}
-  class="font-semibold px-2 py-1 hover:bg-white/10 rounded"
-  type="button"
-  on:click={toggleResizePopup}
->
-  Resize
-</button>
-
-  {#if showResizePopup}
-    <!-- Overlay invisible pour fermer au clic extérieur -->
-    <button
-      class="fixed inset-0 cursor-default"
-      style="background: transparent;"
-      on:click={closeResizePopup}
-      aria-label="Close resize popup"
-      type="button"
-    ></button>
-
-    <!-- Popup -->
-    <div class="resize-popup" bind:this={resizePopupEl}>
-      <div class="resize-title">Whiteboard size</div>
-
-      <div class="resize-row">
-        <span class="label">Width</span>
-        <span class="value">{boardWidth}px</span>
-      </div>
-
-      <div class="resize-row">
-        <span class="label">Height</span>
-        <span class="value">{boardHeight}px</span>
-      </div>
-
-      <div class="resize-big">
-        {boardWidth} × {boardHeight}
-      </div>
-
-      {#if resizing}
-        <div class="resize-hint">Redimensionnement en cours…</div>
-      {/if}
-    </div>
-  {/if}
-</div>
-
-        <div class="h-4 w-[1px] bg-white/30"></div>
-
-        <!-- ✅ affiche la taille réelle actuelle -->
-        <span class="text-sm opacity-90">Sans nom — {boardWidth}×{boardHeight}</span>
-      </div>
-
-      <div class="flex items-center space-x-3">
-        <div class="flex -space-x-2">
-          <div class="w-8 h-8 rounded-full bg-red-400 border-2 border-indigo-600"></div>
-          <div class="w-8 h-8 rounded-full bg-green-400 border-2 border-indigo-600"></div>
+<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
+    
+    <!-- Left Sidebar (Navigation) -->
+    {#if isSidebarOpen}
+        <aside class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20">
+            <!-- Nav Items -->
+            <nav class="flex-1 w-full space-y-2">
+                {#each sidebarItems as item, i}
+                    <button onclick={() => openPannel = item.label} class={`flex flex-col items-center justify-center w-full py-3 hover:bg-gray-800 transition-colors ${openPannel === item.label ? 'bg-gray-800 border-l-4 border-cyan-400' : ''}`}>
+                        <span class="text-xl mb-1">{@html item.icon}</span>
+                        <span class="text-xs font-medium">{item.label}</span>
+                    </button>
+                {/each}
+            </nav>
+        </aside>
+    {/if}
+    {#if openPannel === "Quizz"}
+        <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+            <Quizz mode="edit" />
         </div>
-        <button class="bg-white/20 hover:bg-white/30 p-2 rounded-full" type="button">
-          <span>➕</span>
-        </button>
-        <button class="bg-white text-indigo-700 font-bold py-1.5 px-4 rounded hover:bg-gray-100" type="button">
-          Share
-        </button>
-      </div>
-    </header>
-
-    <!-- Canvas Container -->
-    <div class="flex-1 relative overflow-auto flex items-center justify-center p-10 bg-gray-200">
-      <!-- The White Board / Page (✅ redimensionnable) -->
-      <div
-        class="bg-white shadow-xl relative group"
-        style="width:{boardWidth}px; height:{boardHeight}px;"
-      >
-        <!-- Content Placeholder -->
-
-        <!-- ✅ Handle resize (coin bas-droit) -->
-        {#if showResizePopup}
-           <div
-                class="resize-handle"
-                on:pointerdown={startResize}
-                title="Redimensionner"
+    {:else if openPannel === "Forms"}
+        <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+            <Forms mode="sidebar" onSelect={handleSelectShape} />
+        </div>
+    {:else if openPannel === "Structure"}
+        <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
+            <Arbo />
+            <!-- Resize Handle -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div 
+                class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
+                onmousedown={startResizeSidebar}
             ></div>
-        {/if}
-     </div>
-
-      <!-- Footer / Zoom Controls (inchangé pour l'instant) -->
-      <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
-        <div class="h-4 w-[1px] bg-gray-300"></div>
-        <div class="flex items-center space-x-2">
-          <button class="hover:text-black" type="button">-</button>
-          <span>56%</span>
-          <button class="hover:text-black" type="button">+</button>
         </div>
-        <div class="h-4 w-[1px] bg-gray-300"></div>
-        <span class="cursor-pointer hover:bg-gray-100 p-1 rounded">⤢</span>
-      </div>
-    </div>
-  </main>
+    {/if}
+    
+    <!-- Main Workspace (Canvas Area) -->
+    <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
+        
+        <!-- Top Bar -->
+        <header class="h-14 bg-linear-to-r from-red-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0">
+            <div class="flex items-center space-x-4">
+                <!-- Burger Menu -->
+                <button 
+                    class="p-1 mr-1 cursor-pointer rounded hover:bg-white/10 flex flex-col justify-center"
+                    onclick={toggleSidebar}
+                    title="Toggle Menu"
+                >
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 bg-white/90"></div>
+                </button>
+
+                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
+                
+                <!-- Resize Button & Popup -->
+                 <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:color={boardColor}
+                    bind:visible={showResizePopup} 
+                    type="menu" 
+                 />
+
+                <div class="h-4 w-px bg-white/30"></div>
+                <span class="text-sm opacity-90">Sans nom  {boardWidth}x{boardHeight} </span>
+            </div>
+            <button 
+                class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
+                onclick={() => fullscreenComponent?.fsToggle()}
+            >
+                <i class="fa fa-arrows-alt" aria-hidden="true"></i> Full screen
+            </button>
+        </header>
+
+        <!-- Canvas Container -->
+        <div class="flex-1 relative overflow-hidden flex items-center justify-center bg-gray-200 w-full h-full" onwheel={handleWheel}>
+            
+            <!-- The White Board / Page -->
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+             <Fullscreen bind:isFull={isFull} bind:this={fullscreenComponent}>
+            <div 
+                bind:this={boardElement}
+                role="region" 
+                aria-label="main" 
+                class="bg-white shadow-xl relative group overflow-hidden origin-center will-change-transform cursor-crosshair fs"
+                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px; background-color:{boardColor};"
+                ondrop={handleDrop} 
+                ondragover={handleDragOver}
+                onmousedown={handleMouseDown}
+                onmousemove={handleMouseMove}
+                onmouseup={handleMouseUp}
+            >
+                <Resize 
+                    bind:width={boardWidth} 
+                    bind:height={boardHeight} 
+                    bind:visible={showResizePopup}
+                    type="handle"
+                    zoom={zoom}
+                />
+
+                <!-- Dropped Elements -->
+                {#each canvasElements as element (element.id)}
+                    {#if element.type === 'quizz'}
+                         <div 
+                            style="position: absolute; left: {element.x}px; top: {element.y}px;"
+                            class="w-96"
+                         >
+                            <Quizz 
+                                mode="play"
+                                data={element.data}
+                            />
+                         </div>
+                    {:else if element.type === 'shape'}
+                         <div 
+                            style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element.data.width}px; height: {element.data.height}px;"
+                         >
+                            <Forms mode="canvas" bind:data={element.data} />
+                         </div>
+                    {/if}
+                {/each}
+            </div>
+            </Fullscreen>
+
+            <!-- Footer / Zoom Controls -->
+            <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-4 text-gray-600 text-sm">
+                <div class="h-4 w-px bg-gray-300"></div>
+                <div class="flex items-center space-x-2">
+                        <button class="hover:text-black py-1 px-2" onclick={zoomOut}>-</button>
+                        <span class="w-12 text-center">{Math.round(zoom * 100)}%</span>
+                        <button class="hover:text-black py-1 px-2" onclick={zoomIn}>+</button>
+                </div>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <button class="cursor-pointer hover:bg-gray-100 p-1 rounded" onclick={resetView}>⤢</button>
+            </div>
+
+        </div>
+    </main>
 </div>
-
-<style>
-  /* Petit carré en bas à droite pour redimensionner */
-  .resize-handle {
-    position: absolute;
-    right: -7px;
-    bottom: -7px;
-    width: 16px;
-    height: 16px;
-    background: white;
-    border: 2px solid rgb(99, 102, 241); /* indigo-500 */
-    border-radius: 4px;
-    cursor: nwse-resize;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
-
-  .resize-handle:hover {
-    transform: scale(1.05);
-  }
-  .resize-popup {
-  position: absolute;
-  top: 44px;
-  left: 0;
-  width: 220px;
-  background: white;
-  color: #111;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.25);
-  z-index: 60;
-}
-
-.resize-title {
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.resize-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 6px;
-  color: #333;
-}
-
-.resize-row .value {
-  font-weight: 600;
-  color: #111;
-}
-
-.resize-big {
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #f3f4f6; /* gray-100 */
-  font-weight: 800;
-  text-align: center;
-}
-
-.resize-hint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #4f46e5; /* indigo */
-}
-
-</style>
