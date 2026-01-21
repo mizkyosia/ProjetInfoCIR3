@@ -3,8 +3,6 @@ import { editorDB } from "./schema";
 export async function saveImage(file: File): Promise<string> {
     const id = crypto.randomUUID();
 
-    console.log("test");
-
     await editorDB.put("images", {
         blob: file as Blob,
         type: file.type,

@@ -21,11 +21,21 @@ interface EditorDB extends DBSchema {
             "by-updated": number;
         };
     };
+    slideThumbnails: {
+        key: string; // slideId
+        value: {
+            slideId: string;
+            blob: Blob;
+            updatedAt: number;
+        };
+        indexes: {
+            "by-updated": number;
+        };
+    };
 }
 
 export const editorDB = await openDB<EditorDB>("editor-db", 1, {
     upgrade(db) {
-        console.log("test 1");
         if (!db.objectStoreNames.contains("images")) {
             const store = db.createObjectStore("images", { keyPath: "id" });
             store.createIndex("by-uploaded", "createdAt");
@@ -36,6 +46,13 @@ export const editorDB = await openDB<EditorDB>("editor-db", 1, {
                 keyPath: "id",
             });
             store.createIndex("by-updated", "createdAt");
+        }
+
+        if (!db.objectStoreNames.contains("slideThumbnails")) {
+            const store = db.createObjectStore("slideThumbnails", {
+                keyPath: "slideId",
+            });
+            store.createIndex("by-updated", "updatedAt");
         }
     },
 });

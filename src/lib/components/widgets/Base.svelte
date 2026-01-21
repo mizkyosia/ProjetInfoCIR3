@@ -3,12 +3,14 @@
 </script>
 
 <script lang="ts">
-    import type { BaseElement } from "$lib/types/presentation";
+    import { selectedElementStore } from "$lib/state.svelte";
+
+    import type { BaseElement, Element } from "$lib/types/presentation";
 
     let {
         data = $bindable(),
         children,
-    }: { data: BaseElement; children?: Snippet } = $props();
+    }: { data: Element; children?: Snippet } = $props();
 
     import { type Snippet } from "svelte";
 
@@ -99,17 +101,22 @@
       rotate({data.rotation}rad);
     width: {data.width}px;
     height: {data.height}px;
+    z-index: {data.zIndex};
   "
     onpointerdown={(e) => {
+        e.stopImmediatePropagation();
+        e.preventDefault();
         e.stopPropagation();
         if (selectedElement != undefined) selectedElement();
 
         selectedElement = () => {
             selected = false;
             selectedElement = undefined;
+            selectedElementStore.element = null;
             return data.id;
         };
         selected = true;
+        selectedElementStore.element = data;
     }}
 >
     <!-- actual content (NOT draggable) -->
@@ -120,7 +127,7 @@
     {#if selected}
         <!-- border drag area -->
         <div
-            class="border absolute -inset-2 z-0"
+            class="absolute -inset-2 z-0 cursor-grab border-2 border-blue-500 pointer-events-auto bg-transparent"
             onpointerdown={startMove}
         ></div>
 
@@ -137,15 +144,3 @@
         ></div>
     {/if}
 </div>
-
-<style>
-    /* invisible border used for dragging */
-    .border {
-        position: absolute;
-        inset: -6px;
-        border: 2px solid #4f46e5;
-        pointer-events: auto;
-        cursor: grab;
-        background: transparent;
-    }
-</style>

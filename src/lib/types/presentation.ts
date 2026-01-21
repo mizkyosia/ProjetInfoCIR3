@@ -26,6 +26,7 @@ type ElementMap = {
     quizz: QuizzElement;
     table: TableElement;
     shape: ShapeElement;
+    button: ButtonElement;
 };
 
 export type BaseElement = {
@@ -43,7 +44,6 @@ export type BaseElement = {
     borderStyle: "solid" | "dotted" | "dashed";
     opacity: number;
 };
-
 
 export type TextElement = BaseElement & {
     type: "text";
@@ -67,6 +67,11 @@ export type QuizzElement = BaseElement & {
 export type TableElement = BaseElement & {
     type: "table";
     table: string[][];
+};
+
+export type ButtonElement = BaseElement & {
+    type: "button";
+    slideId: string;
 };
 
 export type ShapeType =
@@ -120,6 +125,9 @@ export function createPresentationElement<T extends keyof ElementMap>(
         },
         shape: {
             shapeType: "rectangle",
+        },
+        button: {
+            slideId: "",
         },
     };
 

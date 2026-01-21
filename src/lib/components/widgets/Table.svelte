@@ -39,7 +39,7 @@
     }
 </script>
 
-<Base bind:data={data as BaseElement}>
+<Base bind:data={data}>
     <div
         class="flex-1 w-full h-full overflow-hidden relative"
         oncontextmenu={handleContext}

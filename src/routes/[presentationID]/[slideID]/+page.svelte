@@ -5,6 +5,8 @@
     import Quizz from "$lib/components/widgets/Quizz.svelte";
     import { editorStore } from "$lib/state.svelte.js";
     import { savePresentation } from "$lib/db/presentations.svelte.js";
+    import Button from "$lib/components/widgets/Button.svelte";
+    import Editor from "$lib/components/Editor.svelte";
 
     const { data } = $props();
 
@@ -32,6 +34,10 @@
                 mode="view"
                 bind:data={editorStore.currentSlide.elements[i]}
             />
+        {:else if editorStore.currentSlide.elements[i].type === "button"}
+            <Button bind:data={editorStore.currentSlide.elements[i]} />
         {/if}
     {/each}
+
+    <Editor />
 {/if}

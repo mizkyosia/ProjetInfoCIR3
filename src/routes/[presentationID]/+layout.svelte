@@ -9,7 +9,7 @@
         },
         {
             icon: '<i class="fa fa-square" aria-hidden="true"></i>',
-            label: "Forms",
+            label: "Shapes",
         },
         { icon: "T", label: "Text" },
         {
@@ -18,15 +18,21 @@
         },
         { icon: "❓", label: "Quizz" },
         { icon: "📂", label: "Projects" },
+        { icon: "🔘", label: "Buttons" },
     ];
 
     import { listImageURLs, getImageURL, saveImage } from "$lib/db/images";
     import Shape from "$lib/components/widgets/Shape.svelte";
     import { createPresentationElement } from "$lib/types/presentation";
-    import { createContext, onMount } from "svelte";
+    import { onMount } from "svelte";
     import { editorStore, type EditorStore } from "$lib/state.svelte.js";
     import { savePresentation } from "$lib/db/presentations.svelte";
     import { beforeNavigate } from "$app/navigation";
+    import Fullscreen from "$lib/components/Fullscreen.svelte";
+    import { updateSlideThumbnail } from "$lib/db/thumbnails.js";
+    import { presentation } from "$lib/maheb/presentationStore.js";
+    import Editor from "$lib/components/Editor.svelte";
+    import { selectedElement } from "$lib/components/widgets/Base.svelte";
 
     let { children, data } = $props();
 
@@ -39,9 +45,19 @@
     let boardElement: HTMLDivElement; // Reference to the board div
 
     let uploadedImages: Awaited<ReturnType<typeof listImageURLs>> = $state([]);
+    listImageURLs().then((urls) => (uploadedImages = urls));
 
-    onMount(async () => {
-        uploadedImages = await listImageURLs();
+    onMount(() => {
+        const unsubscribe = beforeNavigate(({ from, to, cancel }) => {
+            // example: save presentation before navigating
+            savePresentation(editorStore.presentation);
+            updateSlideThumbnail(
+                editorStore.currentSlide?.id ?? "",
+                boardElement,
+            );
+        });
+
+        return unsubscribe; // optional cleanup
     });
 
     // --- Gestion du sélecteur ---
@@ -107,7 +123,6 @@
         if (!file) return;
 
         const imageId = await saveImage(file);
-        console.log("Saved image with ID:", imageId);
 
         const url = (await getImageURL(imageId)) as string;
 
@@ -115,6 +130,9 @@
     }
 
     // Resize
+
+    let fullscreenComponent: Fullscreen | undefined = $state();
+    let isFull = $state(false);
 
     // ✅ Taille "réelle" de la white board (modifiable)
     let boardWidth = $state(800);
@@ -168,17 +186,6 @@
     }
     let resizeBtnEl: HTMLElement | undefined = $state();
     let resizePopupEl: HTMLElement | undefined = $state();
-
-    onMount(() => {
-        const unsubscribe = beforeNavigate(({ from, to, cancel }) => {
-            console.log("Leaving page", from?.url, "→", to?.url);
-
-            // example: save presentation before navigating
-            savePresentation(editorStore.presentation);
-        });
-
-        return unsubscribe; // optional cleanup
-    });
 </script>
 
 <svelte:document
@@ -206,34 +213,15 @@
 
 <div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
     <!-- Burger Menu Button (Fixed/Absolute so it persists) -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="absolute top-4 left-5 z-50 p-2 cursor-pointer rounded transition-colors"
-        class:hover:bg-gray-800={isSidebarOpen}
-        class:hover:bg-gray-300={!isSidebarOpen}
-        onclick={toggleSidebar}
-        title="Toggle Menu"
-    >
-        <div
-            class="w-6 h-0.5 mb-1 transition-colors"
-            class:bg-white={isSidebarOpen}
-            class:bg-gray-800={!isSidebarOpen}
-        ></div>
-        <div
-            class="w-6 h-0.5 mb-1 transition-colors"
-            class:bg-white={isSidebarOpen}
-            class:bg-gray-800={!isSidebarOpen}
-        ></div>
-        <div
-            class="w-6 h-0.5 transition-colors"
-            class:bg-white={isSidebarOpen}
-            class:bg-gray-800={!isSidebarOpen}
-        ></div>
-    </div>
 
     <!-- Left Sidebar (Navigation) -->
     {#if isSidebarOpen}
+        <button
+            class="absolute hover:bg-gray-800 top-4 left-7 z-50 p-2 cursor-pointer text-2xl rounded transition-colors fa-times fa text-white"
+            onclick={toggleSidebar}
+            title="Toggle Menu"
+        >
+        </button>
         <aside
             class="w-20 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0 pt-20"
         >
@@ -251,141 +239,151 @@
             </nav>
         </aside>
     {/if}
-    {#if openPanel == "Photo"}
+    {#if openPanel != ""}
         <div
             class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
         >
-            <label
-                for="file"
-                class="cursor-pointer bg-neutral-100 w-auto m-8 h-fit aspect-square border-2 border-dashed border-neutral-700 rounded-4xl flex items-center justify-center"
-            >
-                <div class="flex flex-col items-center content-center gap-1">
-                    <svg viewBox="0 0 640 512" class="h-12 mb-5">
-                        <path
-                            d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"
-                        ></path>
-                    </svg>
-                    <p>Drag and Drop</p>
-                    <p>or</p>
-                    <span
-                        class="bg-linear-to-r from-indigo-500 via-violet-500 to-fuchsia-500 bg-left hover:bg-right px-4 py-1 rounded-xl text-neutral-50 transition-all"
-                        >Browse file</span
+            {#if openPanel == "Photo"}
+                <label
+                    for="file"
+                    class="cursor-pointer bg-neutral-100 w-auto m-8 h-fit aspect-square border-2 border-dashed border-neutral-700 rounded-4xl flex items-center justify-center"
+                >
+                    <div
+                        class="flex flex-col items-center content-center gap-1"
                     >
-                </div>
-                <input
-                    class="hidden"
-                    id="file"
-                    type="file"
-                    onchange={onUpload}
-                />
-            </label>
-            <hr class="mx-5 border rounded-full border-neutral-700" />
+                        <svg viewBox="0 0 640 512" class="h-12 mb-5">
+                            <path
+                                d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"
+                            ></path>
+                        </svg>
+                        <p>Drag and Drop</p>
+                        <p>or</p>
+                        <span
+                            class="bg-linear-to-r from-indigo-500 via-violet-500 to-fuchsia-500 bg-left hover:bg-right px-4 py-1 rounded-xl text-neutral-50 transition-all"
+                            >Browse file</span
+                        >
+                    </div>
+                    <input
+                        class="hidden"
+                        id="file"
+                        type="file"
+                        onchange={onUpload}
+                    />
+                </label>
+                <hr class="mx-5 border rounded-full border-neutral-700" />
 
-            <div class="flex flex-wrap items-center">
-                {#each uploadedImages as img (img.id)}
-                    <button
-                        onclick={() => {
-                            editorStore.updateSlide((slide) =>
-                                slide.elements.push(
-                                    createPresentationElement("image", {
-                                        assetId: img.id,
-                                    }),
-                                ),
-                            );
-                        }}
-                    >
-                        <img
-                            src={img.url}
-                            class="h-26 shadow m-2 hover:shadow-lg transition-all cursor-pointer rounded-2xl border border-neu"
-                            alt="Uploaded"
-                        />
-                    </button>
-                {/each}
-            </div>
-        </div>
-    {:else if openPanel == "Tabs"}
-        <div
-            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
-        >
-            Tableaux
-            <div
-                class="mb-2 text-xs text-gray-500 font-semibold text-center uppercase tracking-wider"
-            >
-                {hoverCol > 0
-                    ? `${hoverCol} x ${hoverRow}`
-                    : "Insérer un tableau"}
-            </div>
-
-            <div
-                class="grid grid-cols-10 gap-1 outline-none"
-                onmouseleave={() => {
-                    hoverRow = 0;
-                    hoverCol = 0;
-                }}
-                role="grid"
-                tabindex="-1"
-            >
-                {#each Array(10) as _, r}
-                    {#each Array(10) as _, c}
+                <div class="flex flex-wrap items-center">
+                    {#each uploadedImages as img (img.id)}
                         <button
-                            type="button"
-                            class="w-5 h-5 border rounded-sm transition-colors duration-75 block p-0
-                {r + 1 <= hoverRow && c + 1 <= hoverCol
-                                ? 'bg-orange-500 border-orange-600 shadow-sm'
-                                : 'bg-white border-gray-200 hover:border-blue-400'}"
-                            onmouseenter={() => {
-                                hoverRow = r + 1;
-                                hoverCol = c + 1;
-                            }}
                             onclick={() => {
-                                editorStore.updateSlide((s) =>
-                                    s.elements.push(
-                                        createPresentationElement("table", {
-                                            table: new Array(hoverRow).fill(
-                                                new Array(hoverCol),
-                                            ),
+                                editorStore.updateSlide((slide) =>
+                                    slide.elements.push(
+                                        createPresentationElement("image", {
+                                            assetId: img.id,
                                         }),
                                     ),
                                 );
                             }}
-                            aria-label="{r + 1}x{c + 1}"
-                        ></button>
+                        >
+                            <img
+                                src={img.url}
+                                class="h-26 shadow m-2 hover:shadow-lg transition-all cursor-pointer rounded-2xl border border-neu"
+                                alt="Uploaded"
+                            />
+                        </button>
                     {/each}
-                {/each}
-            </div>
-        </div>
-    {:else if openPanel === "Quizz"}
-        <div
-            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
-        >
-            <button
-                onclick={() => {
-                    editorStore.updateSlide((s) =>
-                        s.elements.push(createPresentationElement("quizz")),
-                    );
-                }}>Ajouter quizz</button
-            >
-        </div>
-    {:else if openPanel === "Forms"}
-        <div
-            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
-        >
-            <Shape
-                mode="sidebar"
-                onSelect={(t) => {
-                    editorStore.updateSlide((s) =>
-                        s.elements.push(
-                            createPresentationElement("shape", {
-                                shapeType: t,
-                                fillColor: "#0000aa",
-                                borderColor: "#0000cc",
-                                borderThickness: 2,
-                            }),
-                        ),
-                    );
-                }}
-                data={createPresentationElement("shape")}
-            />
+                </div>
+            {:else if openPanel == "Tabs"}
+                Tableaux
+                <div
+                    class="mb-2 text-xs text-gray-500 font-semibold text-center uppercase tracking-wider"
+                >
+                    {hoverCol > 0
+                        ? `${hoverCol} x ${hoverRow}`
+                        : "Insérer un tableau"}
+                </div>
+
+                <div
+                    class="grid grid-cols-10 gap-1 outline-none"
+                    onmouseleave={() => {
+                        hoverRow = 0;
+                        hoverCol = 0;
+                    }}
+                    role="grid"
+                    tabindex="-1"
+                >
+                    {#each Array(10) as _, r}
+                        {#each Array(10) as _, c}
+                            <button
+                                type="button"
+                                class="w-5 h-5 border rounded-sm transition-colors duration-75 block p-0
+                {r + 1 <= hoverRow && c + 1 <= hoverCol
+                                    ? 'bg-orange-500 border-orange-600 shadow-sm'
+                                    : 'bg-white border-gray-200 hover:border-blue-400'}"
+                                onmouseenter={() => {
+                                    hoverRow = r + 1;
+                                    hoverCol = c + 1;
+                                }}
+                                onclick={() => {
+                                    editorStore.updateSlide((s) =>
+                                        s.elements.push(
+                                            createPresentationElement("table", {
+                                                table: new Array(hoverRow).fill(
+                                                    new Array(hoverCol),
+                                                ),
+                                            }),
+                                        ),
+                                    );
+                                }}
+                                aria-label="{r + 1}x{c + 1}"
+                            ></button>
+                        {/each}
+                    {/each}
+                </div>
+            {:else if openPanel === "Quizz"}
+                <button
+                    onclick={() => {
+                        editorStore.updateSlide((s) =>
+                            s.elements.push(createPresentationElement("quizz")),
+                        );
+                    }}>Ajouter quizz</button
+                >
+            {:else if openPanel === "Shapes"}
+                <Shape
+                    mode="sidebar"
+                    onSelect={(t) => {
+                        editorStore.updateSlide((s) =>
+                            s.elements.push(
+                                createPresentationElement("shape", {
+                                    shapeType: t,
+                                    fillColor: "#aaaaff",
+                                    borderColor: "#8888ff",
+                                    borderThickness: 2,
+                                }),
+                            ),
+                        );
+                    }}
+                    data={createPresentationElement("shape")}
+                />
+            {:else if openPanel == "Buttons"}
+                <button
+                    class="p-2 rounded-xl text-xl font-bold cursor-pointer"
+                    onclick={() => {
+                        console.log("new button");
+                        editorStore.updateSlide((s) =>
+                            s.elements.push(
+                                createPresentationElement("button", {
+                                    fillColor: "#aaaaff",
+                                    borderColor: "#8888ff",
+                                    borderThickness: 2,
+                                }),
+                            ),
+                        );
+                    }}
+                >
+                    Ajouter bouton
+                </button>
+            {/if}
         </div>
     {/if}
 
@@ -396,6 +394,31 @@
             class="h-14 bg-linear-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between px-4 shadow-sm shrink-0"
         >
             <div class="flex items-center space-x-4">
+                <!-- Burger Menu -->
+                <button
+                    class="p-1 mr-1 cursor-pointer rounded hover:bg-white/10 flex flex-col justify-center {isSidebarOpen
+                        ? 'hidden'
+                        : ''}"
+                    onclick={toggleSidebar}
+                    title="Toggle Menu"
+                >
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 mb-1 bg-white/90"></div>
+                    <div class="w-5 h-0.5 bg-white/90"></div>
+                </button>
+
+                <a
+                    class="flex items-center gap-2 text-lg hover:bg-neutral-500/20"
+                    href="/"
+                >
+                    <div
+                        class="w-8 h-8 rounded-full bg-linear-to-tr from-blue-500 to-purple-600 shadow-2xl"
+                    ></div>
+                    <span class="text-xl font-bold tracking-tight"
+                        >DesignFlow</span
+                    >
+                </a>
+
                 <Export />
                 <button
                     onclick={() => (showResizePopup = true)}
@@ -403,7 +426,18 @@
                     >Resize</button
                 >
                 <div class="h-4 w-px bg-white/30"></div>
-                <span class="text-sm opacity-90">Sans nom 1920x1080 </span>
+                <span class="text-sm opacity-90"
+                    >Sans nom {boardWidth}x{boardHeight}
+                </span>
+
+                <button
+                    class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
+                    onclick={() => {
+                        fullscreenComponent?.fsToggle();
+                    }}
+                >
+                    <i class="fa fa-arrows-alt" aria-hidden="true"></i> Full screen
+                </button>
             </div>
 
             {#if showResizePopup}
@@ -444,28 +478,35 @@
         </header>
 
         <!-- Canvas Container -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
             class="flex-1 relative overflow-hidden flex items-center justify-center bg-gray-200 w-full h-full"
             onwheel={handleWheel}
+            onpointerdown={() => {
+                selectedElement?.();
+            }}
         >
             <!-- The White Board / Page -->
-            <div
-                bind:this={boardElement}
-                role="region"
-                aria-label="main"
-                class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
-                style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px;"
-            >
-                {@render children()}
-                <!-- ✅ Handle resize (coin bas-droit) -->
-                {#if showResizePopup}
-                    <div
-                        class="resize-handle"
-                        onpointerdown={startResize}
-                        title="Redimensionner"
-                    ></div>
-                {/if}
-            </div>
+            <Fullscreen bind:isFull bind:this={fullscreenComponent}>
+                <div
+                    bind:this={boardElement}
+                    role="region"
+                    aria-label="main"
+                    class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
+                    style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px;"
+                >
+                    {@render children()}
+                    <!-- ✅ Handle resize (coin bas-droit) -->
+                    {#if showResizePopup}
+                        <div
+                            class="resize-handle"
+                            onpointerdown={startResize}
+                            title="Redimensionner"
+                        ></div>
+                    {/if}
+                </div>
+            </Fullscreen>
 
             <!-- Footer / Zoom Controls -->
             <div

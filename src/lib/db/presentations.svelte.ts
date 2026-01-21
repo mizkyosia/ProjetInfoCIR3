@@ -4,16 +4,12 @@ import type { Presentation, Slide } from "$lib/types/presentation";
 export async function savePresentation(presentation: Presentation) {
     presentation.updatedAt = Date.now();
     await editorDB.put("presentations", $state.snapshot(presentation));
-
-    console.log("Presentation saved : " + presentation.id);
 }
 
 export async function getPresentation(
     id: string,
 ): Promise<Presentation | null> {
     const pres = await editorDB.get("presentations", id);
-
-    console.log("Presentation loaded : ", pres);
 
     return pres ?? null;
 }

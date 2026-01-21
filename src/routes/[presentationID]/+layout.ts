@@ -8,8 +8,6 @@ import { editorStore } from "$lib/state.svelte.js";
 export let ssr = false;
 
 export async function load(event) {
-    console.log("test");
-
     let pres = await getPresentation(event.params.presentationID);
 
     if (pres === null) {
