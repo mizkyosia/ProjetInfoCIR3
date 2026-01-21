@@ -18,6 +18,8 @@ import Fullscreen from "$lib/Fullscreen.svelte";
 import Resize from "$lib/Resize.svelte";
 import Arbo from '$lib/Arbo.svelte';
 import treeStructureImg from '../../tree-structure.png';
+import Export from "$lib/Export.svelte";
+
 
 let isSidebarOpen = $state(true);
 let openPannel = $state("")
@@ -300,7 +302,10 @@ function toggleSidebar() {
                     <div class="w-5 h-0.5 bg-white/90"></div>
                 </button>
 
-                <span class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer">File</span>
+                
+                <Export {canvasElements} />
+
+                
                 
                 <!-- Resize Button & Popup -->
                  <Resize 
@@ -329,6 +334,7 @@ function toggleSidebar() {
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
              <Fullscreen bind:isFull={isFull} bind:this={fullscreenComponent}>
             <div 
+                id="presentation"
                 bind:this={boardElement}
                 role="region" 
                 aria-label="main" 
