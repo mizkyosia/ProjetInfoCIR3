@@ -11,9 +11,10 @@
         { icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`, label: 'Structure' },
         
     ];
-
 import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
 import Forms, { createShape } from '$lib/Forms.svelte';
+import Text from '$lib/Zonedt.svelte';
+import Toolbar from '$lib/Toolbar.svelte';
 import Fullscreen from '$lib/Fullscreen.svelte';
 import Resize from '$lib/Resize.svelte';
 import Arbo from '$lib/Arbo.svelte';
@@ -275,7 +276,11 @@ function toggleSidebar() {
             </nav>
         </aside>
     {/if}
-    {#if openPannel === "Quizz"}
+    {#if openPannel === "Text"}
+        <div class="w-250 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+            <Toolbar />
+        </div>
+    {:else if openPannel === "Quizz"}
         <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
             <Quizz mode="edit" />
         </div>
@@ -369,6 +374,7 @@ function toggleSidebar() {
 
                 <!-- Dropped Elements -->
                 {#each canvasElements as element (element.id)}
+                
                     {#if element.type === 'quizz'}
                          <div 
                             style="position: absolute; left: {element.x}px; top: {element.y}px;"

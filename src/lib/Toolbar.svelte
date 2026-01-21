@@ -187,8 +187,3 @@ awesome.min.css">
         </div>
     </div>
 </div>
-<div
-    contenteditable="true"
-    bind:innerHTML={data.html}
-    class="bg-gray-50 rounded p-3 border border-gray-200 min-h-[200px] list-decimal list-inside"
-></div>

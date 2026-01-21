@@ -5,7 +5,7 @@
   interface Serie { label: string; valeurs: number[]; couleur: string; }
   interface GraphObject {
     id: number; type: string; x: number; y: number; w: number; h: number;
-    etiquettes: string[]; tableau: Serie[];
+    etiquettes?: string[]; tableau?: Serie[]; content?: string;
   }
 
   let graphiques: GraphObject[] = [];
@@ -27,6 +27,16 @@
         { label: "Série 1", valeurs: [, , ], couleur: "#4FD1C5" },
         { label: "Série 2", valeurs: [, , ], couleur: "#F6AD55" }
       ]
+    }];
+    selectedId = newId;
+    showMenu = false;
+  }
+
+  function ajouterTexte() {
+    const newId = Date.now();
+    graphiques = [...graphiques, {
+      id: newId, type: 'text', x: 450, y: 150, w: 200, h: 100,
+      content: "Double-cliquez pour éditer"
     }];
     selectedId = newId;
     showMenu = false;
@@ -95,6 +105,9 @@
     <button class="nav-btn" on:click={() => showMenu = !showMenu} class:active={showMenu}>
       <span class="icon">📊</span><span class="label">Graphiques</span>
     </button>
+    <button class="nav-btn" on:click={ajouterTexte}>
+      <span class="icon">T</span><span class="label">Texte</span>
+    </button>
 
     {#if showMenu}
       <div class="menu-flyout" transition:fade>
@@ -112,7 +125,7 @@
       </div>
     {/if}
 
-    {#if activeGraph}
+    {#if activeGraph && activeGraph.type !== 'text'}
       <div class="editor-drawer" transition:slide={{axis: 'x'}}>
         <div class="ed-header">
            <h3>Données</h3>
@@ -171,16 +184,25 @@
         style="width: {g.w}px; height: {g.h}px; left: {g.x}px; top: {g.y}px;"
         on:mousedown|stopPropagation={(e) => handleMouseDown(e, g.id, 'move')}
       >
-        <Charts typeGraphique={g.type} tableau={g.tableau} etiquettes={g.etiquettes} />
-        
-        <div class="chart-legend">
-            {#each g.tableau as s}
-              <div class="legend-item">
-                <span class="dot" style="background: {s.couleur}"></span>
-                {s.label}
-              </div>
-            {/each}
-        </div>
+        {#if g.type === 'text'}
+            <textarea 
+                class="element-text" 
+                bind:value={g.content} 
+                on:mousedown|stopPropagation 
+                placeholder="Écrivez ici..."
+            ></textarea>
+        {:else}
+            <Charts typeGraphique={g.type} tableau={g.tableau} etiquettes={g.etiquettes} />
+            
+            <div class="chart-legend">
+                {#each g.tableau as s}
+                <div class="legend-item">
+                    <span class="dot" style="background: {s.couleur}"></span>
+                    {s.label}
+                </div>
+                {/each}
+            </div>
+        {/if}
 
         {#if selectedId === g.id}
           <div class="resizer" on:mousedown|stopPropagation={(e) => handleMouseDown(e, g.id, 'resize')}></div>
