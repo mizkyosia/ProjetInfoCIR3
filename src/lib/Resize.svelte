@@ -108,8 +108,7 @@
         <button 
             bind:this={resizeBtnEl}
             onclick={toggleResizePopup}
-            class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer"
-        >
+            class="font-semibold px-2 py-1 hover:bg-white/10 rounded cursor-pointer" >
             Resize
         </button>
         
