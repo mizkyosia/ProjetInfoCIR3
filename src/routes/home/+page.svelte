@@ -19,6 +19,7 @@ import Fullscreen from '$lib/Fullscreen.svelte';
 import Resize from '$lib/Resize.svelte';
 import Arbo from '$lib/Arbo.svelte';
 import Charts from '$lib/Charts1.svelte';
+import ChartRenderer from '$lib/Charts.svelte';
 import treeStructureImg from '../../tree-structure.png';
 
 
@@ -256,6 +257,31 @@ function toggleSidebar() {
         openPannel = "";
     }
 }
+
+function handleAddChart(event) {
+    const chart = event.detail;
+    const newId = Date.now();
+    // Default position (center of screen approximately, or 100,100)
+    // Adjust logic to place it in view center if possible
+    const rect = boardElement ? boardElement.getBoundingClientRect() : { width: boardWidth, height: boardHeight };
+    // Simple positioning for now
+    const x = -pan.x / zoom + (rect.width / zoom / 2) - (chart.w / 2);
+    const y = -pan.y / zoom + (rect.height / zoom / 2) - (chart.h / 2);
+
+    canvasElements = [...canvasElements, {
+        id: newId,
+        type: 'chart',
+        x: x > 0 ? x : 50,
+        y: y > 0 ? y : 50,
+        data: {
+            type: chart.type,
+            tableau: chart.tableau,
+            etiquettes: chart.etiquettes,
+            width: chart.w,
+            height: chart.h
+        }
+    }];
+}
 </script>
 
 <svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
@@ -291,14 +317,15 @@ function toggleSidebar() {
     {:else if openPannel === "Structure"}
         <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
             <Arbo />
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
                 class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
                 onmousedown={startResizeSidebar}
             ></div>
         </div>
     {:else if openPannel === "Charts"}
-        <div class="w-300 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
-             <Charts />
+        <div class="w-200 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+             <Charts on:add={handleAddChart} />
         </div>
         
     {/if}
@@ -390,6 +417,16 @@ function toggleSidebar() {
                             style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element.data.width}px; height: {element.data.height}px;"
                          >
                             <Forms mode="canvas" bind:data={element.data} />
+                         </div>
+                    {:else if element.type === 'chart'}
+                         <div
+                            style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element.data.width}px; height: {element.data.height}px;"
+                         >
+                            <ChartRenderer 
+                                typeGraphique={element.data.type} 
+                                tableau={element.data.tableau} 
+                                etiquettes={element.data.etiquettes} 
+                            />
                          </div>
                     {/if}
                 {/each}
