@@ -8,9 +8,6 @@
 
     let { data = $bindable() }: ElementProps<TableElement> = $props();
 
-    let width = 300;
-    let height = 150;
-
     // --- MENU ---
     let showMenu = false;
     let menuX = 0;
@@ -39,7 +36,7 @@
     }
 </script>
 
-<Base bind:data={data}>
+<Base bind:data>
     <div
         class="flex-1 w-full h-full overflow-hidden relative"
         oncontextmenu={handleContext}
@@ -48,7 +45,7 @@
         <table
             class="w-full h-full border-collapse data.table-fixed pointer-events-none"
             style="
-    backgound-color: {data.fillColor};
+    background-color: {data.fillColor};
     border: {data.borderThickness}px {data.borderStyle} {data.borderColor};
     border-radius: {data.borderRadius};"
         >
@@ -59,7 +56,25 @@
                             <td
                                 contenteditable="true"
                                 bind:textContent={data.table[r][c]}
-                                class="border border-gray-300 p-1 text-sm overflow-hidden focus:bg-blue-50 focus:outline-none pointer-events-auto"
+                                class="border p-1 text-sm overflow-hidden focus:bg-blue-50 focus:outline-none pointer-events-auto rounded-"
+                                style="
+    border: {data.borderThickness}px {data.borderStyle} {data.borderColor};
+    
+                        {r === 0 && c === 0
+                                    ? `border-top-left-radius: ${data.borderRadius}px;`
+                                    : ''}
+{r === 0 && c === row.length - 1
+                                    ? `border-top-right-radius: ${data.borderRadius}px;`
+                                    : ''}
+{r === data.table.length - 1 && c === 0
+                                    ? `border-bottom-left-radius: ${data.borderRadius}px;`
+                                    : ''}
+{r === data.table.length - 1 && c === row.length - 1
+                                    ? `border-bottom-right-radius: ${data.borderRadius}px;`
+                                    : ''}
+
+
+    "
                             ></td>
                         {/each}
                     </tr>

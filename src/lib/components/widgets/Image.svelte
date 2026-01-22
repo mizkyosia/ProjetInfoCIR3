@@ -15,6 +15,16 @@
     if (src === null) getImageURL(data.assetId).then((s) => (src = s));
 </script>
 
-<Base bind:data={data as BaseElement}>
-    <img class="object-fill w-full h-full" {src} alt="Imported" />
+<Base bind:data>
+    <img
+        class="object-fill w-full h-full"
+        {src}
+        alt="Imported"
+        style="
+            border-color: {data.borderColor};
+            border-width: {data.borderThickness}px;
+            border-style: {data.borderStyle};
+            border-radius: {data.borderRadius}px;
+            background-color: {data.fillColor};"
+    />
 </Base>

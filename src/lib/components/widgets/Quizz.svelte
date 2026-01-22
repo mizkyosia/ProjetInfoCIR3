@@ -1,9 +1,11 @@
 <script lang="ts">
+    import { editorStore } from "$lib/state.svelte";
     import type {
         BaseElement,
         ElementProps,
         QuizzElement,
     } from "$lib/types/presentation";
+    import Icon from "@iconify/svelte";
     import Base from "./Base.svelte";
 
     let {
@@ -43,9 +45,15 @@
     }
 </script>
 
-<Base bind:data={data as BaseElement}>
+<Base bind:data>
     <div
-        class="bg-neutral-50 overflow-hidden border-2 border-[#ddd] rounded-lg p-4 text-left w-full h-full font-sans"
+        class="overflow-hidden p-4 text-left w-full h-full font-sans"
+        style="
+            border-color: {data.borderColor};
+            border-width: {data.borderThickness}px;
+            border-style: {data.borderStyle};
+            border-radius: {data.borderRadius}px;
+            background-color: {data.fillColor};"
     >
         <h3 class="mt-0 mb-5 text-neutral-900" contenteditable="true">
             {data.question}
@@ -53,28 +61,67 @@
 
         <div class="flex flex-col gap-2.5">
             {#each data.options as option, index}
-                <button
-                    class={[
-                        "p-3 text-left border-2 rounded-md cursor-pointer transition-all",
-                        {
-                            "border-blue-500 bg-blue-200 font-bold":
-                                selectedIndex === index,
-                            "border-green-500 bg-green-200 text-green-950":
-                                issubmitted &&
-                                index === data.correctAnswerIndex,
-                            "border-red-500 bg-red-200 text-red-950":
-                                issubmitted &&
-                                selectedIndex === index &&
-                                index !== data.correctAnswerIndex,
-                            "border-neutral-700": !issubmitted,
-                        },
-                    ]}
-                    contenteditable={true}
-                    onclick={() => selectOption(index)}
-                    disabled={issubmitted}
-                >
-                    {option}
-                </button>
+                {#if editorStore.viewing}
+                    <button
+                        class={[
+                            "p-3 text-left border-2 rounded-md cursor-pointer transition-all",
+                            {
+                                "border-blue-500 bg-blue-200 font-bold":
+                                    selectedIndex === index,
+                                "border-green-500 bg-green-200 text-green-950":
+                                    issubmitted &&
+                                    index === data.correctAnswerIndex,
+                                "border-red-500 bg-red-200 text-red-950":
+                                    issubmitted &&
+                                    selectedIndex === index &&
+                                    index !== data.correctAnswerIndex,
+                                "border-neutral-700": !issubmitted,
+                            },
+                        ]}
+                        onclick={() => selectOption(index)}
+                        disabled={issubmitted}
+                    >
+                        {option}
+                    </button>
+                {:else}
+                    <div class="flex flex-row items-center gap-2">
+                        <input
+                            type="radio"
+                            bind:group={data.correctAnswerIndex}
+                            value={index}
+                        />
+                        <input
+                            type="text"
+                            class={[
+                                "p-3 text-left border-2 rounded-md cursor-pointer transition-all flex-1 min-w-5",
+                                {
+                                    "border-blue-500 bg-blue-200 font-bold":
+                                        selectedIndex === index,
+                                    "border-green-500 bg-green-200 text-green-950":
+                                        issubmitted &&
+                                        index === data.correctAnswerIndex,
+                                    "border-red-500 bg-red-200 text-red-950":
+                                        issubmitted &&
+                                        selectedIndex === index &&
+                                        index !== data.correctAnswerIndex,
+                                    "border-neutral-700": !issubmitted,
+                                },
+                            ]}
+                            bind:value={data.options[index]}
+                            onclick={() => selectOption(index)}
+                            disabled={issubmitted}
+                        />
+                        <Icon
+                            icon="iconamoon:trash"
+                            class="hover:text-red-500 transition-colors h-5 w-5 cursor-pointer"
+                            onclick={() => {
+                                data.options = data.options.filter(
+                                    (_, i) => i !== index,
+                                );
+                            }}
+                        />
+                    </div>
+                {/if}
             {/each}
         </div>
 

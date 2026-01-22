@@ -38,6 +38,4 @@
             <Button bind:data={editorStore.currentSlide.elements[i]} />
         {/if}
     {/each}
-
-    <Editor />
 {/if}

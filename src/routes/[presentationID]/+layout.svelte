@@ -331,6 +331,8 @@
                                                 table: new Array(hoverRow).fill(
                                                     new Array(hoverCol),
                                                 ),
+                                                width: 70 * hoverCol,
+                                                height: 40 * hoverRow,
                                             }),
                                         ),
                                     );
@@ -489,6 +491,8 @@
         >
             <!-- The White Board / Page -->
             <Fullscreen bind:isFull bind:this={fullscreenComponent}>
+                <Editor />
+
                 <div
                     bind:this={boardElement}
                     role="region"

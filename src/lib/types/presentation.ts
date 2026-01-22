@@ -100,11 +100,11 @@ export function createPresentationElement<T extends keyof ElementMap>(
         height: 250,
         rotation: 0,
         zIndex: 0,
-        fillColor: "",
-        borderColor: "",
+        fillColor: "#ccccff",
+        borderColor: "#8888ff",
         borderRadius: 0,
         borderStyle: "solid",
-        borderThickness: 0,
+        borderThickness: 2,
         opacity: 1,
     };
 

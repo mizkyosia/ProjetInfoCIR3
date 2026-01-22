@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-    import { selectedElementStore } from "$lib/state.svelte";
+    import { editorStore, selectedElementStore } from "$lib/state.svelte";
 
     import type { BaseElement, Element } from "$lib/types/presentation";
 
@@ -92,6 +92,23 @@
     }
 </script>
 
+<svelte:window
+    onkeydown={(e) => {
+        if (
+            e.key == "Delete" &&
+            editorStore.currentSlide !== null &&
+            selected
+        ) {
+            console.log(data.id);
+            selectedElement?.();
+            editorStore.currentSlide.elements =
+                editorStore.currentSlide.elements.filter(
+                    (s) => s.id !== data.id,
+                );
+        }
+    }}
+/>
+
 <div
     bind:this={el}
     class="element absolute touch-none select-none box-border origin-center"
@@ -120,7 +137,10 @@
     }}
 >
     <!-- actual content (NOT draggable) -->
-    <div class="w-full h-full pointer-events-auto z-10 relative box-border">
+    <div
+        class="w-full h-full pointer-events-auto z-10 relative box-border"
+        style="opacity: {data.opacity};"
+    >
         {@render children?.()}
     </div>
 

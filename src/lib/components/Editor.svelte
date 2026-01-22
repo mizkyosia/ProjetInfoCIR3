@@ -1,94 +1,91 @@
 <script lang="ts">
-    import { selectedElementStore } from "$lib/state.svelte";
+    import { editorStore, selectedElementStore } from "$lib/state.svelte";
+    import Icon from "@iconify/svelte";
+    import Select from "./Select.svelte";
+    import type { QuizzElement } from "$lib/types/presentation";
+
+    let borderStyleSelect = $state();
 </script>
 
 {#if selectedElementStore.element !== null}
     <div
         class="
     absolute -translate-x-1/2
+    top-2 left-1/2
     flex items-center gap-3
     px-3 py-2
     bg-neutral-900/90 backdrop-blur
     rounded-lg shadow-lg
     text-xs text-white
+    flex-row
     z-[1000]
   "
-        style="left: {selectedElementStore.element.x +
-            selectedElementStore.element.width /
-                2}px; top: {selectedElementStore.element.y -
-            selectedElementStore.element.height / 2 + 10}px;"
         onpointerdown={(e) => e.stopPropagation()}
     >
         <!-- Fill color -->
         <div class="flex items-center gap-1">
-            <span class="opacity-70">Fill</span>
             <input
                 type="color"
                 bind:value={selectedElementStore.element.fillColor}
-                class="h-6 w-6 cursor-pointer rounded border border-neutral-700 bg-transparent"
+                class="h-6 w-6 cursor-pointer rounded border border-neutral-700 bg-transparent text-xs"
             />
         </div>
+        <hr
+            class="h-6 w-0.5 rounded-2xl bg-neutral-500 opacity-70 border-none"
+        />
 
         <!-- Border color -->
         <div class="flex items-center gap-1">
-            <span class="opacity-70">Border</span>
             <input
                 type="color"
                 bind:value={selectedElementStore.element.borderColor}
-                class="h-6 w-6 cursor-pointer rounded border border-neutral-700 bg-transparent"
+                class="h-6 w-6 cursor-pointer rounded border border-neutral-700 bg-transparent text-xs"
             />
         </div>
 
         <!-- Border thickness -->
         <div class="flex items-center gap-1">
-            <span class="opacity-70">Thickness</span>
+            <Icon icon="bi:border-width" width="16" height="16" />
             <input
                 type="number"
                 min="0"
                 bind:value={selectedElementStore.element.borderThickness}
                 class="
-        w-14 rounded bg-neutral-800 px-1 py-0.5
+        w-14 rounded bg-neutral-800 p-1
         text-white outline-none
-        border border-neutral-700
+        border border-neutral-700 text-xs
       "
             />
         </div>
 
         <!-- Border radius -->
         <div class="flex items-center gap-1">
-            <span class="opacity-70">Radius</span>
+            <Icon icon="tabler:border-radius" width="24" height="24" />
             <input
                 type="number"
                 min="0"
                 bind:value={selectedElementStore.element.borderRadius}
                 class="
-        w-14 rounded bg-neutral-800 px-1 py-0.5
+        w-14 rounded bg-neutral-800 p-1
         text-white outline-none
-        border border-neutral-700
+        border border-neutral-700 text-xs
       "
             />
         </div>
 
         <!-- Border style -->
-        <div class="flex items-center gap-1">
-            <span class="opacity-70">Style</span>
-            <select
-                bind:value={selectedElementStore.element.borderStyle}
-                class="
-        rounded bg-neutral-800 px-1 py-0.5
-        text-white outline-none
-        border border-neutral-700
-      "
-            >
-                <option value="solid">Solid</option>
-                <option value="dotted">Dotted</option>
-                <option value="dashed">Dashed</option>
-            </select>
-        </div>
+        <Select
+            options={[
+                { value: "solid", render: borderSolid },
+                { value: "dashed", render: borderDashed },
+                { value: "dotted", render: borderDotted },
+            ]}
+            bind:value={selectedElementStore.element.borderStyle}
+        />
 
         <!-- Opacity -->
         <div class="flex items-center gap-1">
-            <span class="opacity-70">Opacity</span>
+            <Icon icon="cil:opacity" class="text-lg" />
             <input
                 type="range"
                 min="0"
@@ -98,5 +95,47 @@
                 class="w-24 cursor-pointer"
             />
         </div>
+
+        <hr
+            class="h-6 w-0.5 rounded-2xl bg-neutral-500 opacity-70 border-none"
+        />
+
+        {#if selectedElementStore.element.type === "button"}
+            <Select
+                value={editorStore.currentSlide?.id}
+                options={editorStore.presentation.slides.map((s, i) => {
+                    return {
+                        value: s.id,
+                        render: slideNumber,
+                        args: i,
+                    };
+                })}
+            />
+        {:else if selectedElementStore.element.type === "quizz"}
+            <Icon
+                icon="gridicons:add-outline"
+                class="hover:cursor-pointer hover:bg-neutral-600 transition-colors rounded-lg p-1 box-content h-5 w-5"
+                onclick={() =>
+                    (selectedElementStore.element as QuizzElement).options.push(
+                        "Nouveau choix",
+                    )}
+            />
+        {/if}
     </div>
 {/if}
+
+{#snippet borderSolid()}
+    <Icon icon="radix-icons:border-solid" width="15" height="15" />
+{/snippet}
+
+{#snippet borderDashed()}
+    <Icon icon="radix-icons:border-dashed" width="15" height="15" />
+{/snippet}
+
+{#snippet borderDotted()}
+    <Icon icon="radix-icons:border-dotted" width="15" height="15" />
+{/snippet}
+
+{#snippet slideNumber(index: number)}
+    <span class="md">Slide {index}</span>
+{/snippet}

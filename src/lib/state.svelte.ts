@@ -26,6 +26,6 @@ export const editorStore: EditorStore = $state({
     },
 });
 
-export const selectedElementStore: { element: BaseElement | null } = $state({
+export const selectedElementStore: { element: Element | null } = $state({
     element: null,
 });
