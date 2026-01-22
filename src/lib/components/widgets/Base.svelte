@@ -9,8 +9,9 @@
 
     let {
         data = $bindable(),
+        editor,
         children,
-    }: { data: Element; children?: Snippet } = $props();
+    }: { data: Element; children?: Snippet; editor?: Snippet } = $props();
 
     import { type Snippet } from "svelte";
 
@@ -51,8 +52,6 @@
 
         centerX = rect.x + rect.width / 2;
         centerY = rect.y + rect.height / 2;
-
-        console.log(centerX, centerY);
 
         window.addEventListener("pointermove", onPointerMove);
         window.addEventListener("pointerup", onPointerUp);
@@ -99,7 +98,6 @@
             editorStore.currentSlide !== null &&
             selected
         ) {
-            console.log(data.id);
             selectedElement?.();
             editorStore.currentSlide.elements =
                 editorStore.currentSlide.elements.filter(
@@ -121,8 +119,6 @@
     z-index: {data.zIndex};
   "
     onpointerdown={(e) => {
-        e.stopImmediatePropagation();
-        e.preventDefault();
         e.stopPropagation();
         if (selectedElement != undefined) selectedElement();
 
@@ -130,10 +126,12 @@
             selected = false;
             selectedElement = undefined;
             selectedElementStore.element = null;
+            selectedElementStore.snippet = null;
             return data.id;
         };
         selected = true;
         selectedElementStore.element = data;
+        selectedElementStore.snippet = editor ?? null;
     }}
 >
     <!-- actual content (NOT draggable) -->

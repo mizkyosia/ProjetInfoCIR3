@@ -8,13 +8,27 @@
         ElementProps,
         ImageElement,
     } from "$lib/types/presentation";
+    import Select from "../Select.svelte";
     import Base from "./Base.svelte";
 
     let { data = $bindable() }: ElementProps<ButtonElement> = $props();
     data.slideId = editorStore.currentSlide?.id ?? "";
 </script>
 
-<Base bind:data={data}>
+<Base bind:data>
+    {#snippet editor()}
+        <Select
+            value={editorStore.currentSlide?.id}
+            options={editorStore.presentation.slides.map((s, i) => {
+                return {
+                    value: s.id,
+                    render: slideNumber,
+                    args: i,
+                };
+            })}
+        />
+    {/snippet}
+
     {#if editorStore.viewing}
         <a
             href="./{data.slideId}"
@@ -41,3 +55,7 @@
         ></div>
     {/if}
 </Base>
+
+{#snippet slideNumber(index: number)}
+    <span class="md">Slide {index}</span>
+{/snippet}

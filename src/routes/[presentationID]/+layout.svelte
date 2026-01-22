@@ -17,7 +17,6 @@
             label: "Tabs",
         },
         { icon: "❓", label: "Quizz" },
-        { icon: "📂", label: "Projects" },
         { icon: "🔘", label: "Buttons" },
     ];
 
@@ -25,18 +24,23 @@
     import Shape from "$lib/components/widgets/Shape.svelte";
     import { createPresentationElement } from "$lib/types/presentation";
     import { onMount } from "svelte";
-    import { editorStore, type EditorStore } from "$lib/state.svelte.js";
-    import { savePresentation } from "$lib/db/presentations.svelte";
+    import { editorStore } from "$lib/state.svelte.js";
+    import { newSlide, savePresentation } from "$lib/db/presentations.svelte";
     import { beforeNavigate } from "$app/navigation";
     import Fullscreen from "$lib/components/Fullscreen.svelte";
-    import { updateSlideThumbnail } from "$lib/db/thumbnails.js";
-    import { presentation } from "$lib/maheb/presentationStore.js";
+    import {
+        getSlideThumbnailURL,
+        updateSlideThumbnail,
+    } from "$lib/db/thumbnails.js";
     import Editor from "$lib/components/Editor.svelte";
     import { selectedElement } from "$lib/components/widgets/Base.svelte";
+    import Icon from "@iconify/svelte";
 
     let { children, data } = $props();
 
-    editorStore.presentation = data.presentation;
+    const presentation = $state(data.presentation);
+
+    editorStore.presentation = presentation;
 
     let openPanel = $state("");
     let zoom = $state(1);
@@ -135,8 +139,6 @@
     let isFull = $state(false);
 
     // ✅ Taille "réelle" de la white board (modifiable)
-    let boardWidth = $state(800);
-    let boardHeight = $state(450);
     let showResizePopup = $state(false);
 
     function closeResizePopup() {
@@ -160,8 +162,8 @@
         resizing = true;
         startX = e.clientX;
         startY = e.clientY;
-        startW = boardWidth;
-        startH = boardHeight;
+        startW = editorStore.currentSlide?.width ?? 450;
+        startH = editorStore.currentSlide?.height ?? 450;
 
         // capture du pointeur pour un drag fluide
         // e.currentTarget?.setPointerCapture?.(e.pointerId);
@@ -171,13 +173,19 @@
     }
 
     function onResizeMove(e: MouseEvent) {
-        if (!resizing) return;
+        if (!resizing || editorStore.currentSlide === null) return;
 
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
 
-        boardWidth = Math.max(MIN_W, Math.round(startW + dx));
-        boardHeight = Math.max(MIN_H, Math.round(startH + dy));
+        editorStore.currentSlide.width = Math.max(
+            MIN_W,
+            Math.round(startW + dx),
+        );
+        editorStore.currentSlide.height = Math.max(
+            MIN_H,
+            Math.round(startH + dy),
+        );
     }
 
     function stopResize() {
@@ -371,7 +379,6 @@
                 <button
                     class="p-2 rounded-xl text-xl font-bold cursor-pointer"
                     onclick={() => {
-                        console.log("new button");
                         editorStore.updateSlide((s) =>
                             s.elements.push(
                                 createPresentationElement("button", {
@@ -384,6 +391,17 @@
                     }}
                 >
                     Ajouter bouton
+                </button>
+            {:else if openPanel == "Text"}
+                <button
+                    class="p-2 rounded-xl text-xl font-bold cursor-pointer"
+                    onclick={() => {
+                        editorStore.updateSlide((s) =>
+                            s.elements.push(createPresentationElement("text")),
+                        );
+                    }}
+                >
+                    Ajouter zone de texte
                 </button>
             {/if}
         </div>
@@ -429,7 +447,7 @@
                 >
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90"
-                    >Sans nom {boardWidth}x{boardHeight}
+                    >Sans nom {editorStore.currentSlide?.width}x{editorStore.currentSlide?.height}
                 </span>
 
                 <button
@@ -458,16 +476,16 @@
 
                     <div class="resize-row">
                         <span class="label">Width</span>
-                        <span class="value">{boardWidth}px</span>
+                        <span class="value">{editorStore.currentSlide?.width}px</span>
                     </div>
 
                     <div class="resize-row">
                         <span class="label">Height</span>
-                        <span class="value">{boardHeight}px</span>
+                        <span class="value">{editorStore.currentSlide?.height}px</span>
                     </div>
 
                     <div class="resize-big">
-                        {boardWidth} × {boardHeight}
+                        {editorStore.currentSlide?.width} × {editorStore.currentSlide?.height}
                     </div>
 
                     {#if resizing}
@@ -498,7 +516,7 @@
                     role="region"
                     aria-label="main"
                     class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
-                    style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{boardWidth}px; height:{boardHeight}px;"
+                    style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{editorStore.currentSlide?.width}px; height:{editorStore.currentSlide?.height}px;"
                 >
                     {@render children()}
                     <!-- ✅ Handle resize (coin bas-droit) -->
@@ -535,6 +553,46 @@
                 >
             </div>
         </div>
+
+        <footer
+            class="bg-neutral-100 flex flex-row items-center px-4 shadow-sm shrink-0 overflow-scroll"
+        >
+            <div class="flex flex-row">
+                {#each presentation.slides as slide, i}
+                    {#await getSlideThumbnailURL(slide.id) then thumbnail}
+                        <a
+                            href="/{presentation.id}/{slide.id}"
+                            class="shrink-0"
+                        >
+                            {#if thumbnail}
+                                <img
+                                    class="block w-auto h-36 m-4 rounded-3xl border-2 border-violet-500"
+                                    alt="Slide n°{i}"
+                                    src={thumbnail}
+                                />
+                            {:else}
+                                <div
+                                    class="h-36 w-48 m-4 rounded-3xl border-2 border-violet-500 flex items-center justify-center"
+                                >
+                                    Slide n°{i}
+                                </div>
+                            {/if}
+                        </a>
+                    {/await}
+                {/each}
+                <button
+                    class="shrink-0 h-36 w-48 m-4 rounded-3xl border-violet-500 border-4 border-dashed flex items-center justify-center cursor-pointer"
+                    onclick={() => {
+                        presentation.slides.push(newSlide());
+                    }}
+                >
+                    <Icon
+                        icon="line-md:plus"
+                        class="text-5xl text-violet-500"
+                    />
+                </button>
+            </div>
+        </footer>
     </main>
 </div>
 

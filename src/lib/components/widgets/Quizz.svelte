@@ -46,6 +46,14 @@
 </script>
 
 <Base bind:data>
+    {#snippet editor()}
+        <Icon
+            icon="gridicons:add-outline"
+            class="hover:cursor-pointer hover:bg-neutral-600 transition-colors rounded-lg p-1 box-content h-5 w-5"
+            onclick={() => data.options.push("Nouveau choix")}
+        />
+    {/snippet}
+
     <div
         class="overflow-hidden p-4 text-left w-full h-full font-sans"
         style="

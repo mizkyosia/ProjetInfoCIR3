@@ -86,7 +86,12 @@
         class="w-xl flex m-auto flex-wrap items-center justify-center my-8"
     >
         {#each presentations as p}
-            <PresentationPreview presentation={p} />
+            <PresentationPreview
+                title={p.title}
+                updatedAt={p.updatedAt}
+                slideID={p.slides[0].id}
+                presentationID={p.id}
+            />
         {/each}
     </section>
 

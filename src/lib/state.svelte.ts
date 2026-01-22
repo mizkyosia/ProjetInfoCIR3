@@ -1,6 +1,12 @@
 import { SvelteMap } from "svelte/reactivity";
-import type { BaseElement, Element, Presentation, Slide } from "./types/presentation";
+import type {
+    BaseElement,
+    Element,
+    Presentation,
+    Slide,
+} from "./types/presentation";
 import { savePresentation } from "./db/presentations.svelte";
+import type { Snippet } from "svelte";
 
 export let imageUrlMap: SvelteMap<string, string> = new SvelteMap();
 
@@ -26,6 +32,10 @@ export const editorStore: EditorStore = $state({
     },
 });
 
-export const selectedElementStore: { element: Element | null } = $state({
+export const selectedElementStore: {
+    element: Element | null;
+    snippet: Snippet | null;
+} = $state({
     element: null,
+    snippet: null,
 });

@@ -48,8 +48,6 @@ export type BaseElement = {
 export type TextElement = BaseElement & {
     type: "text";
     text: string;
-    fontSize: number;
-    color: string;
 };
 
 export type ImageElement = BaseElement & {
@@ -82,6 +80,7 @@ export type ShapeType =
     | "bubble"
     | "heart"
     | "arrow";
+
 export type ShapeElement = BaseElement & {
     type: "shape";
     shapeType: ShapeType;
@@ -115,7 +114,7 @@ export function createPresentationElement<T extends keyof ElementMap>(
             keyof BaseElement
         >;
     } = {
-        text: { text: "", fontSize: 16, color: "#000000" },
+        text: { text: "" },
         image: { assetId: "" },
         table: { table: [["Lorem", "Ipsum"]] },
         quizz: {

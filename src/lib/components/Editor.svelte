@@ -100,27 +100,7 @@
             class="h-6 w-0.5 rounded-2xl bg-neutral-500 opacity-70 border-none"
         />
 
-        {#if selectedElementStore.element.type === "button"}
-            <Select
-                value={editorStore.currentSlide?.id}
-                options={editorStore.presentation.slides.map((s, i) => {
-                    return {
-                        value: s.id,
-                        render: slideNumber,
-                        args: i,
-                    };
-                })}
-            />
-        {:else if selectedElementStore.element.type === "quizz"}
-            <Icon
-                icon="gridicons:add-outline"
-                class="hover:cursor-pointer hover:bg-neutral-600 transition-colors rounded-lg p-1 box-content h-5 w-5"
-                onclick={() =>
-                    (selectedElementStore.element as QuizzElement).options.push(
-                        "Nouveau choix",
-                    )}
-            />
-        {/if}
+        {@render selectedElementStore?.snippet?.()}
     </div>
 {/if}
 
@@ -134,8 +114,4 @@
 
 {#snippet borderDotted()}
     <Icon icon="radix-icons:border-dotted" width="15" height="15" />
-{/snippet}
-
-{#snippet slideNumber(index: number)}
-    <span class="md">Slide {index}</span>
 {/snippet}

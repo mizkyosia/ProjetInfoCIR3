@@ -1,6 +1,4 @@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font
-awesome.min.css"> 
-<script>
+<script lang="ts">
     // États de la toolbar
     let selectedFont = "Arial";
     let fontSize = 16;
@@ -24,7 +22,7 @@ awesome.min.css">
     function applySize() {
         document.execCommand("fontSize", false, "7");
         const elements = document.querySelectorAll("font[size='7']");
-        elements.forEach(el => {
+        elements.forEach((el) => {
             el.removeAttribute("size");
             el.style.fontSize = `${fontSize}px`;
         });
@@ -41,12 +39,22 @@ awesome.min.css">
     }
 </script>
 
-<!-- BARRE D’OUTILS -->
-<div class="bg-white border-b border-gray-300 shadow-sm p-3 flex items-center space-x-4">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font
+awesome.min.css"
+/>
 
+<!-- BARRE D’OUTILS -->
+<div
+    class="bg-white border-b border-gray-300 shadow-sm p-3 flex items-center space-x-4"
+>
     <!-- Police -->
-    <select bind:value={selectedFont} onchange={applyFont}
-        class="border rounded px-2 py-1 text-sm">
+    <select
+        bind:value={selectedFont}
+        onchange={applyFont}
+        class="border rounded px-2 py-1 text-sm"
+    >
         <option>Arial</option>
         <option>Times New Roman</option>
         <option>Courier New</option>
@@ -55,8 +63,11 @@ awesome.min.css">
     </select>
 
     <!-- Taille -->
-    <select bind:value={fontSize} onchange={applySize}
-        class="border rounded px-2 py-1 text-sm w-20">
+    <select
+        bind:value={fontSize}
+        onchange={applySize}
+        class="border rounded px-2 py-1 text-sm w-20"
+    >
         <option value="12">12px</option>
         <option value="16">16px</option>
         <option value="20">20px</option>
@@ -65,19 +76,41 @@ awesome.min.css">
     </select>
 
     <!-- Style -->
-    <button onclick={() => applyCommand("bold")} class="px-2 py-1 border rounded">B</button>
-    <button onclick={() => applyCommand("italic")} class="px-2 py-1 border rounded">I</button>
-    <button onclick={() => applyCommand("underline")} class="px-2 py-1 border rounded">U</button>
+    <button
+        onclick={() => applyCommand("bold")}
+        class="px-2 py-1 border rounded">B</button
+    >
+    <button
+        onclick={() => applyCommand("italic")}
+        class="px-2 py-1 border rounded">I</button
+    >
+    <button
+        onclick={() => applyCommand("underline")}
+        class="px-2 py-1 border rounded">U</button
+    >
 
     <!-- Alignement -->
-    <button onclick={() => applyAlign("Left")} class="px-2 py-1 border rounded">←</button>
-    <button onclick={() => applyAlign("Center")} class="px-2 py-1 border rounded">↔</button>
-    <button onclick={() => applyAlign("Right")} class="px-2 py-1 border rounded">→</button>
-    <button onclick={() => applyAlign("Full")} class="px-2 py-1 border rounded">≡</button>
+    <button onclick={() => applyAlign("Left")} class="px-2 py-1 border rounded"
+        >←</button
+    >
+    <button
+        onclick={() => applyAlign("Center")}
+        class="px-2 py-1 border rounded">↔</button
+    >
+    <button onclick={() => applyAlign("Right")} class="px-2 py-1 border rounded"
+        >→</button
+    >
+    <button onclick={() => applyAlign("Full")} class="px-2 py-1 border rounded"
+        >≡</button
+    >
 
     <!-- Couleur -->
-    <input type="color" bind:value={textColor} oninput={applyColor}
-        class="w-10 h-8 border rounded" />
+    <input
+        type="color"
+        bind:value={textColor}
+        oninput={applyColor}
+        class="w-10 h-8 border rounded"
+    />
 </div>
 
 <!-- ZONE ÉDITABLE -->

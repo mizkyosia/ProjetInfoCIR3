@@ -1,20 +1,65 @@
 <script lang="ts">
-    import { getImageURL } from "$lib/db/images";
-    import type { Presentation } from "$lib/types/presentation";
+    import { getSlideThumbnailURL } from "$lib/db/thumbnails";
 
-    const { presentation }: { presentation: Presentation } = $props();
+    let { title, updatedAt, slideID, presentationID } = $props<{
+        title: string;
+        updatedAt: number;
+        presentationID: string;
+        slideID: string;
+    }>();
 
-    let src = $state("");
-    getImageURL(presentation.id + "-snapshot").then(
-        (s) => (src = s ?? "default.png"),
+    const formattedDate = new Date(updatedAt).toLocaleDateString();
+    let thumbnailUrl: undefined | string = $state();
+
+    getSlideThumbnailURL(slideID).then(
+        (url) => (thumbnailUrl = url ?? undefined),
     );
 </script>
 
 <a
-    class="hover:border-2 border-b-cyan-400 border-0 border-r-4 w-sm"
-    href="/{presentation.id}"
+    href="/{presentationID}"
+    class="
+    flex items-center gap-3
+    rounded-lg border border-neutral-700
+    bg-neutral-900 p-3
+    text-white
+    hover:bg-neutral-800
+  "
 >
-    <img {src} alt="Snapshot de présentation" />
-    <h3>{presentation.title}</h3>
-    <h4>{new Date(presentation.updatedAt).toDateString()}</h4>
+    <!-- Thumbnail -->
+    <div
+        class="
+      h-16 w-24
+      flex-shrink-0
+      overflow-hidden
+      rounded
+      bg-neutral-800
+      border border-neutral-700
+    "
+    >
+        {#if thumbnailUrl}
+            <img
+                src={thumbnailUrl}
+                alt="Thumbnail"
+                class="h-full w-full object-cover"
+            />
+        {:else}
+            <div
+                class="flex h-full w-full items-center justify-center text-xs text-neutral-500"
+            >
+                No preview
+            </div>
+        {/if}
+    </div>
+
+    <!-- Info -->
+    <div class="flex min-w-0 flex-col">
+        <div class="truncate font-medium">
+            {title}
+        </div>
+
+        <div class="text-xs text-neutral-500">
+            Updated {formattedDate}
+        </div>
+    </div>
 </a>

@@ -6,13 +6,15 @@
     import { editorStore } from "$lib/state.svelte.js";
     import { savePresentation } from "$lib/db/presentations.svelte.js";
     import Button from "$lib/components/widgets/Button.svelte";
-    import Editor from "$lib/components/Editor.svelte";
+    import Text from "$lib/components/widgets/Text.svelte";
 
     const { data } = $props();
 
-    editorStore.currentSlide =
-        editorStore.presentation.slides.find((s) => s.id === data.slide) ??
-        null;
+    $effect(() => {
+        editorStore.currentSlide =
+            editorStore.presentation.slides.find((s) => s.id === data.slide) ??
+            null;
+    });
 
     savePresentation(editorStore.presentation);
 </script>
@@ -36,6 +38,8 @@
             />
         {:else if editorStore.currentSlide.elements[i].type === "button"}
             <Button bind:data={editorStore.currentSlide.elements[i]} />
+        {:else if editorStore.currentSlide.elements[i].type === "text"}
+            <Text bind:data={editorStore.currentSlide.elements[i]} />
         {/if}
     {/each}
 {/if}

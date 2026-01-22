@@ -1,5 +1,6 @@
 import { captureElement } from "$lib/util";
 import { editorDB } from "$lib/db/schema";
+import { imageUrlMap } from "$lib/state.svelte";
 
 export async function updateSlideThumbnail(
     slideId: string,
@@ -15,12 +16,21 @@ export async function updateSlideThumbnail(
         blob,
         updatedAt: Date.now(),
     });
+
+    imageUrlMap.set(slideId, URL.createObjectURL(blob));
 }
 
 export async function getSlideThumbnailURL(
     slideId: string,
 ): Promise<string | null> {
-    const entry = await editorDB.get("slideThumbnails", slideId);
-    if (!entry) return null;
-    return URL.createObjectURL(entry.blob);
+    let url = imageUrlMap.get(slideId);
+
+    if (!url) {
+        const entry = await editorDB.get("slideThumbnails", slideId);
+        if (!entry) return null;
+
+        url = URL.createObjectURL(entry.blob);
+        imageUrlMap.set(slideId, url);
+    }
+    return url;
 }
