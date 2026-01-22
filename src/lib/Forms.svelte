@@ -16,7 +16,7 @@
 <script lang="ts">
 	/**
 	 * Forms.svelte
-     * Svelte 5 component for managing Shapes in the sidebar (palette) 
+     * Svelte 5 component for managing Shapes in the sidebar
      * and rendering them on the canvas.
 	 */
 

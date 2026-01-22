@@ -12,7 +12,7 @@
 <script>
     export let mode = 'play'; // 'play' | 'edit'
     
-    // Unified data object
+    // Unified data objects
     export let data = {
         question: "",
         options: [],
