@@ -181,14 +181,8 @@ awesome.min.css">
     <div class="px-4 pb-4">
         <div
             contenteditable="true"
-            class="bg-gray-50 rounded p-3 border border-gray-200 min-h-[200px]"
-        >
+            class="bg-gray-50 rounded p-3 border border-gray-200 min-h-[200px]">
             Sélectionnez du texte et appliquez un style.
         </div>
     </div>
 </div>
-<div
-    contenteditable="true"
-    bind:innerHTML={data.html}
-    class="bg-gray-50 rounded p-3 border border-gray-200 min-h-[200px] list-decimal list-inside"
-></div>

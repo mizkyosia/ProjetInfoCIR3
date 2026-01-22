@@ -19,6 +19,7 @@
         correctAnswerIndex: 0
     };
 
+    
     let selectedIndex = null;
     let issubmitted = false;
 

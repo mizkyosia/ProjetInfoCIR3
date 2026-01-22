@@ -70,11 +70,9 @@
         
         <div class="p-4 grid grid-cols-2 gap-3 overflow-y-auto">
             {#each SHAPES as shape}
-                <button 
-                    class="flex flex-col items-center justify-center p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-white hover:border-blue-400 hover:shadow-md cursor-pointer transition-all duration-200 group focus:ring-2 focus:ring-blue-200 focus:outline-none"
-                    onclick={() => onSelect?.(shape.type)}
-                    title={shape.label}
-                >
+                <button class="flex flex-col items-center justify-center p-4 bg-gray-50 border border-gray-100 rounded-xl 
+                    hover:bg-white hover:border-blue-400 hover:shadow-md cursor-pointer transition-all duration-200 group 
+                    focus:ring-2 focus:ring-blue-200 focus:outline-none" onclick={() => onSelect?.(shape.type)} title={shape.label}>
                     <span class="text-3xl mb-2 group-hover:scale-110 transition-transform">{shape.icon}</span>
                     <span class="text-xs font-semibold text-gray-500 group-hover:text-blue-600">{shape.label}</span>
                 </button>
