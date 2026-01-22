@@ -1,6 +1,9 @@
 <script lang="ts">
   import Charts from './Charts.svelte';
   import { fade, slide } from 'svelte/transition';
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   interface Serie { label: string; valeurs: number[]; couleur: string; }
   interface GraphObject {
@@ -88,6 +91,12 @@
     activeGraph.tableau = activeGraph.tableau.map(s => ({ ...s, valeurs: s.valeurs.filter((_, i) => i !== idx) }));
     graphiques = [...graphiques];
   }
+
+  function addToWhiteboard() {
+      if (activeGraph) {
+          dispatch('add', activeGraph);
+      }
+  }
 </script>
 
 <div class="canva-shell">
@@ -155,7 +164,9 @@
             </tbody>
           </table>
         </div>
+
         <div class="ed-footer">
+          <button on:click={addToWhiteboard}>Ajouter au tableau</button>
           <button on:click={addLabel}>+ Label X</button>
           <button on:click={addSerie} class="primary">+ Série Y</button>
         </div>

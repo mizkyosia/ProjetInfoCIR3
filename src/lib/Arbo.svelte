@@ -1,25 +1,33 @@
-<script>
-  import { SvelteFlow, Background, Controls } from '@xyflow/svelte';
+<script lang="ts">
+  import { SvelteFlow, Background, Controls, type Edge, type Node , MarkerType, addEdge, type Connection}  from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
-  import CustomNode from './CustomNode.svelte';
-
+  import CustomNode from './Node/CustomNode.svelte';
+  import CustomEdgeMarker from './Node/CustomEdgeMarker.svelte';
   const nodeTypes = {
-    custom: CustomNode
+    custom: CustomNode,
   };
-
+  const edgeTypes = {
+    customEdge: CustomEdgeMarker
+    
+  };
   let nodes = $state.raw([]);
   let edges = $state.raw([]);
-
   let showModal = $state(false);
   let newNodeData = $state({
       label: '',
-      type: 'default',
+      type: '',
       description: ''
   });
+
+  function onConnect(connection: Connection) {
+    edges = addEdge(connection, edges);
+  }
+
 // Functions to handle modal
   function openModal() {
       showModal = true;
-      newNodeData = { label: '', type: 'default', description: '' };
+      newNodeData = { label: '', type: '', description: '' };
+
   }
 
   function closeModal() {
@@ -47,27 +55,10 @@
     <div class="modal-overlay">
         <div class="modal">
             <h3>Add New Node</h3>
-            
-            <label>
-                Type:
-                <select bind:value={newNodeData.type}>
-                    <option value="default">Default</option>
-                    <option value="input">Input</option>
-                    <option value="output">Output</option>
-                    <option value="service">Service</option>
-                </select>
-            </label>
-
             <label>
                 Name:
                 <input type="text" bind:value={newNodeData.label} placeholder="Node Name" />
             </label>
-
-            <label>
-                Description:
-                <textarea bind:value={newNodeData.description} placeholder="Description (optional)"></textarea>
-            </label>
-
             <div class="modal-actions">
                 <button onclick={closeModal}>Cancel</button>
                 <button onclick={addNode}>Add</button>
@@ -79,11 +70,21 @@
   <SvelteFlow 
     bind:nodes 
     bind:edges 
-    {nodeTypes}
+    {nodeTypes} 
     fitView
+    onconnect={onConnect}
+    defaultEdgeOptions={{
+      markerStart: {
+      type: MarkerType.ArrowClosed,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+      },
+    }}
   >
-    <Background />
-    <Controls />
+      <CustomEdgeMarker />
+      <Background />
+      <Controls />
   </SvelteFlow>
 </div>
 

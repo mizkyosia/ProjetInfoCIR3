@@ -1,45 +1,56 @@
 <script>
     // Placeholder data for the sidebar items
     const sidebarItems = [
-        { icon: 'T', label: 'Text' },
-        { icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>', label: 'Photo' },
-        { icon: '<i class="fa fa-square" aria-hidden="true"></i>', label: 'Forms' },
-        { icon: '<i class="fa fa-table" aria-hidden="true"></i>', label: 'Tabs' },
-        { icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>', label: 'Charts' },
-        { icon: '❓', label: 'Quizz' },
-        { icon: '📂', label: 'Projects' },
-        { icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`, label: 'Structure' },
-        
+        { icon: "T", label: "Text" },
+        {
+            icon: '<i class="fa fa-picture-o" aria-hidden="true"></i>',
+            label: "Photo",
+        },
+        {
+            icon: '<i class="fa fa-square" aria-hidden="true"></i>',
+            label: "Forms",
+        },
+        {
+            icon: '<i class="fa fa-table" aria-hidden="true"></i>',
+            label: "Tabs",
+        },
+        {
+            icon: '<i class="fa fa-bar-chart" aria-hidden="true"></i>',
+            label: "Charts",
+        },
+        { icon: "❓", label: "Quizz" },
+        { icon: "📂", label: "Projects" },
+        {
+            icon: `<img src="${treeStructureImg}" alt="Structure" class="w-6 h-6 object-contain" />`,
+            label: "Structure",
+        },
     ];
-import Quizz, { createQuizzFromData } from '$lib/Quizz.svelte';
-import Forms, { createShape } from '$lib/Forms.svelte';
-import Text from '$lib/Zonedt.svelte';
-import Toolbar from '$lib/Toolbar.svelte';
-import Fullscreen from '$lib/Fullscreen.svelte';
-import Resize from '$lib/Resize.svelte';
-import Arbo from '$lib/Arbo.svelte';
-import Charts from '$lib/Charts1.svelte';
-import treeStructureImg from '../../tree-structure.png';
+    import Forms, { createShape } from "$lib/Forms.svelte";
+    import Text from "$lib/components/widgets/Text.svelte";
+    import Fullscreen from "$lib/components/Fullscreen.svelte";
+    import Resize from "$lib/components/Resize.svelte";
+    import Arbo from "$lib/Arbo.svelte";
+    import Charts from "$lib/Charts1.svelte";
+    import ChartRenderer from "$lib/components/widgets/Charts.svelte";
+    import treeStructureImg from "../../tree-structure.png";
 
+    let projectTitle = $state("Sans nom");
+    let projectResolution = $state("1920x1080");
 
-let projectTitle = $state("Sans nom");
-let projectResolution = $state("1920x1080");
- 
-
-let isSidebarOpen = $state(true);
-let openPannel = $state("")
+    let isSidebarOpen = $state(true);
+    let openPannel = $state("");
     /**
      * @type {any[] | null | undefined}
      */
-let canvasElements = $state([]);
-let zoom = $state(1);
-let pan = $state({ x: 0, y: 0 });
+    let canvasElements = $state([]);
+    let zoom = $state(1);
+    let pan = $state({ x: 0, y: 0 });
     /**
      * @type {HTMLDivElement}
      */
-let boardElement; // Reference to the board div
-let fullscreenComponent;
-let isFull = $state(false);
+    let boardElement; // Reference to the board div
+    let fullscreenComponent;
+    let isFull = $state(false);
 
     // ✅ Taille "réelle" de la white board (modifiable)
     let boardWidth = $state(800);
@@ -47,34 +58,34 @@ let isFull = $state(false);
     let boardColor = $state("#ffffff");
     let showResizePopup = $state(false);
 
-// Sidebar Resizing
-let sidebarWidth = $state(320); // Default width (w-80)
-let isResizingSidebar = $state(false);
+    // Sidebar Resizing
+    let sidebarWidth = $state(320); // Default width (w-80)
+    let isResizingSidebar = $state(false);
 
-function startResizeSidebar(event) {
-    isResizingSidebar = true;
-    event.preventDefault(); // Prevent text selection
-}
-
-function stopResizeSidebar() {
-    isResizingSidebar = false;
-}
-
-function resizeSidebar(event) {
-    if (!isResizingSidebar) return;
-    
-    // Sidebar width = mouse X position - Nav Bar width (w-20 = 80px)
-    const newWidth = event.clientX - 80;
-    
-    // Constraints
-    if (newWidth >= 200 && newWidth <= 800) {
-        sidebarWidth = newWidth;
+    function startResizeSidebar(event) {
+        isResizingSidebar = true;
+        event.preventDefault(); // Prevent text selection
     }
-}
 
-let previousZoom = 1;
-let previousPan = { x: 0, y: 0 };
-let wasFull = false;
+    function stopResizeSidebar() {
+        isResizingSidebar = false;
+    }
+
+    function resizeSidebar(event) {
+        if (!isResizingSidebar) return;
+
+        // Sidebar width = mouse X position - Nav Bar width (w-20 = 80px)
+        const newWidth = event.clientX - 80;
+
+        // Constraints
+        if (newWidth >= 200 && newWidth <= 800) {
+            sidebarWidth = newWidth;
+        }
+    }
+
+    let previousZoom = 1;
+    let previousPan = { x: 0, y: 0 };
+    let wasFull = false;
 
     $effect(() => {
         if (isFull) {
@@ -273,18 +284,43 @@ let wasFull = false;
             openPannel = "";
         }
     }
+
+    function handleAddChart(event) {
+        const chart = event.detail;
+        const newId = Date.now();
+        // Default position (center of screen approximately, or 100,100)
+        // Adjust logic to place it in view center if possible
+        const rect = boardElement
+            ? boardElement.getBoundingClientRect()
+            : { width: boardWidth, height: boardHeight };
+        // Simple positioning for now
+        const x = -pan.x / zoom + rect.width / zoom / 2 - chart.w / 2;
+        const y = -pan.y / zoom + rect.height / zoom / 2 - chart.h / 2;
+
+        canvasElements = [
+            ...canvasElements,
+            {
+                id: newId,
+                type: "chart",
+                x: x > 0 ? x : 50,
+                y: y > 0 ? y : 50,
+                data: {
+                    type: chart.type,
+                    tableau: chart.tableau,
+                    etiquettes: chart.etiquettes,
+                    width: chart.w,
+                    height: chart.h,
+                },
+            },
+        ];
+    }
 </script>
 
-<<<<<<< HEAD
+<svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
+
 <div
     class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative"
 >
-=======
-<svelte:window onmousemove={resizeSidebar} onmouseup={stopResizeSidebar} />
-
-<div class="flex h-screen w-full bg-gray-100 font-sans overflow-hidden relative">
-    
->>>>>>> origin/Simon
     <!-- Left Sidebar (Navigation) -->
     {#if isSidebarOpen}
         <aside
@@ -304,19 +340,16 @@ let wasFull = false;
             </nav>
         </aside>
     {/if}
-<<<<<<< HEAD
-    {#if openPannel === "Quizz"}
-        <div
-            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
-        >
-=======
     {#if openPannel === "Text"}
-        <div class="w-250 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
+        <div
+            class="w-250 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
+        >
             <Toolbar />
         </div>
     {:else if openPannel === "Quizz"}
-        <div class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
->>>>>>> origin/Simon
+        <div
+            class="w-80 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
+        >
             <Quizz mode="edit" />
         </div>
     {:else if openPannel === "Forms"}
@@ -326,24 +359,24 @@ let wasFull = false;
             <Forms mode="sidebar" onSelect={handleSelectShape} />
         </div>
     {:else if openPannel === "Structure"}
-        <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
+        <div
+            class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative"
+            style="width: {sidebarWidth}px;"
+        >
             <Arbo />
-            <div>
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
                 class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
                 onmousedown={startResizeSidebar}
-            </div>
+            ></div>
         </div>
     {:else if openPannel === "Charts"}
-        <div class="w-300 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">
-             <Charts />
+        <div
+            class="w-200 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200"
+        >
+            <Charts on:add={handleAddChart} />
         </div>
-        
     {/if}
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> origin/Simon
     <!-- Main Workspace (Canvas Area) -->
     <main class="flex-1 flex flex-col min-w-0 bg-gray-100 relative">
         <!-- Top Bar -->
@@ -377,17 +410,15 @@ let wasFull = false;
                 />
 
                 <div class="h-4 w-px bg-white/30"></div>
-<<<<<<< HEAD
-                <span class="text-sm opacity-90"
-                    >Sans nom {boardWidth}x{boardHeight}
-                </span>
-=======
 
                 <div class="flex items-center text-sm opacity-90">
-                    <input bind:value={projectTitle} class="bg-transparent border-none hover:bg-white/10 focus:bg-white/20 focus:outline-none rounded px-1 transition-colors w-auto" style="width: {projectTitle.length + 1}ch" />
+                    <input
+                        bind:value={projectTitle}
+                        class="bg-transparent border-none hover:bg-white/10 focus:bg-white/20 focus:outline-none rounded px-1 transition-colors w-auto"
+                        style="width: {projectTitle.length + 1}ch"
+                    />
                     <span class="ml-2">{projectResolution}</span>
                 </div>
->>>>>>> origin/Simon
             </div>
             <button
                 class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-sm font-medium transition-colors"
@@ -425,28 +456,38 @@ let wasFull = false;
                         {zoom}
                     />
 
-                <!-- Dropped Elements -->
-                {#each canvasElements as element (element.id)}
-                
-                    {#if element.type === 'quizz'}
-                         <div 
-                            style="position: absolute; left: {element.x}px; top: {element.y}px;"
-                            class="w-96"
-                         >
-                            <Quizz 
-                                mode="play"
-                                data={element.data}
-                            />
-                         </div>
-                    {:else if element.type === 'shape'}
-                         <div 
-                            style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element.data.width}px; height: {element.data.height}px;"
-                         >
-                            <Forms mode="canvas" bind:data={element.data} />
-                         </div>
-                    {/if}
-                {/each}
-            </div>
+                    <!-- Dropped Elements -->
+                    {#each canvasElements as element (element.id)}
+                        {#if element.type === "quizz"}
+                            <div
+                                style="position: absolute; left: {element.x}px; top: {element.y}px;"
+                                class="w-96"
+                            >
+                                <Quizz mode="play" data={element.data} />
+                            </div>
+                        {:else if element.type === "shape"}
+                            <div
+                                style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element
+                                    .data.width}px; height: {element.data
+                                    .height}px;"
+                            >
+                                <Forms mode="canvas" bind:data={element.data} />
+                            </div>
+                        {:else if element.type === "chart"}
+                            <div
+                                style="position: absolute; left: {element.x}px; top: {element.y}px; width: {element
+                                    .data.width}px; height: {element.data
+                                    .height}px;"
+                            >
+                                <ChartRenderer
+                                    typeGraphique={element.data.type}
+                                    tableau={element.data.tableau}
+                                    etiquettes={element.data.etiquettes}
+                                />
+                            </div>
+                        {/if}
+                    {/each}
+                </div>
             </Fullscreen>
 
             <!-- Footer / Zoom Controls -->
