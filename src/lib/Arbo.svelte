@@ -1,25 +1,33 @@
-<script>
-  import { SvelteFlow, Background, Controls } from '@xyflow/svelte';
+<script lang="ts">
+  import { SvelteFlow, Background, Controls, type Edge, type Node , MarkerType, addEdge, type Connection}  from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
-  import CustomNode from './CustomNode.svelte';
-
+  import CustomNode from './Node/CustomNode.svelte';
+  import CustomEdgeMarker from './Node/CustomEdgeMarker.svelte';
   const nodeTypes = {
-    custom: CustomNode
+    custom: CustomNode,
   };
-
+  const edgeTypes = {
+    customEdge: CustomEdgeMarker
+    
+  };
   let nodes = $state.raw([]);
   let edges = $state.raw([]);
-
   let showModal = $state(false);
   let newNodeData = $state({
       label: '',
       type: 'default',
       description: ''
   });
+
+  function onConnect(connection: Connection) {
+    edges = addEdge(connection, edges);
+  }
+
 // Functions to handle modal
   function openModal() {
       showModal = true;
       newNodeData = { label: '', type: 'default', description: '' };
+
   }
 
   function closeModal() {
@@ -79,11 +87,21 @@
   <SvelteFlow 
     bind:nodes 
     bind:edges 
-    {nodeTypes}
+    {nodeTypes} 
     fitView
+    onconnect={onConnect}
+    defaultEdgeOptions={{
+      markerStart: {
+      type: MarkerType.ArrowClosed,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+      },
+    }}
   >
-    <Background />
-    <Controls />
+      <CustomEdgeMarker />
+      <Background />
+      <Controls />
   </SvelteFlow>
 </div>
 

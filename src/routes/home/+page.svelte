@@ -291,10 +291,10 @@ function toggleSidebar() {
     {:else if openPannel === "Structure"}
         <div class="bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200 relative" style="width: {sidebarWidth}px;">
             <Arbo />
-            <div>
+            <div
                 class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400 z-50 transition-colors"
                 onmousedown={startResizeSidebar}
-            </div>
+            ></div>
         </div>
     {:else if openPannel === "Charts"}
         <div class="w-300 bg-white h-full shadow-xl overflow-y-auto shrink-0 z-10 border-r border-gray-200">

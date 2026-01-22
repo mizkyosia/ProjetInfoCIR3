@@ -1,5 +1,5 @@
 <script>
-  import { Handle, Position } from '@xyflow/svelte';
+  import { Handle, Position} from '@xyflow/svelte';
 
   export let data;
   export let isConnectable;
@@ -12,14 +12,14 @@
     type="target" 
     position={Position.Top} 
     id="target-top" 
-    style="left: 30%; background: #555;"
+    style="left: 50%; background: #555;"
     {isConnectable} 
   />
   <Handle 
     type="source" 
     position={Position.Top} 
     id="source-top" 
-    style="left: 70%; background: #555;"
+    style="left: 50%; background: #555;"
     {isConnectable} 
   />
 
@@ -28,14 +28,14 @@
     type="target" 
     position={Position.Left} 
     id="target-left" 
-    style="top: 30%; background: #555;"
+    style="top: 50%; background: #555;"
     {isConnectable} 
   />
   <Handle 
     type="source" 
     position={Position.Left} 
     id="source-left" 
-    style="top: 70%; background: #555;"
+    style="top: 50%; background: #555;"
     {isConnectable} 
   />
 
@@ -54,14 +54,14 @@
     type="target" 
     position={Position.Right} 
     id="target-right" 
-    style="top: 30%; background: #555;"
+    style="top: 50%; background: #555;"
     {isConnectable} 
   />
   <Handle 
     type="source" 
     position={Position.Right} 
     id="source-right" 
-    style="top: 70%; background: #555;"
+    style="top: 50%; background: #555;"
     {isConnectable} 
   />
 
@@ -70,14 +70,14 @@
     type="target" 
     position={Position.Bottom} 
     id="target-bottom" 
-    style="left: 30%; background: #555;"
+    style="left: 50%; background: #555;"
     {isConnectable} 
   />
   <Handle 
     type="source" 
     position={Position.Bottom} 
     id="source-bottom" 
-    style="left: 70%; background: #555;"
+    style="left: 50%; background: #555;"
     {isConnectable} 
   />
 </div>
