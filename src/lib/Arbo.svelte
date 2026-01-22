@@ -15,7 +15,7 @@
   let showModal = $state(false);
   let newNodeData = $state({
       label: '',
-      type: 'default',
+      type: '',
       description: ''
   });
 
@@ -26,7 +26,7 @@
 // Functions to handle modal
   function openModal() {
       showModal = true;
-      newNodeData = { label: '', type: 'default', description: '' };
+      newNodeData = { label: '', type: '', description: '' };
 
   }
 
@@ -55,27 +55,10 @@
     <div class="modal-overlay">
         <div class="modal">
             <h3>Add New Node</h3>
-            
-            <label>
-                Type:
-                <select bind:value={newNodeData.type}>
-                    <option value="default">Default</option>
-                    <option value="input">Input</option>
-                    <option value="output">Output</option>
-                    <option value="service">Service</option>
-                </select>
-            </label>
-
             <label>
                 Name:
                 <input type="text" bind:value={newNodeData.label} placeholder="Node Name" />
             </label>
-
-            <label>
-                Description:
-                <textarea bind:value={newNodeData.description} placeholder="Description (optional)"></textarea>
-            </label>
-
             <div class="modal-actions">
                 <button onclick={closeModal}>Cancel</button>
                 <button onclick={addNode}>Add</button>
