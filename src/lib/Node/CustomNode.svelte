@@ -1,11 +1,15 @@
 <script>
     import { Handle, Position } from "@xyflow/svelte";
 
-    export let data;
-    export let isConnectable;
+    let { data, isConnectable } = $props();
 </script>
 
-<div class="custom-node">
+<div
+    class="custom-node"
+    ondblclick={() => (window.location.href += `/${data.slideId}`)}
+    role="button"
+    tabindex="0"
+>
     <!-- Top Handles -->
     <Handle
         type="target"

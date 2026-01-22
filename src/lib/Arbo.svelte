@@ -12,7 +12,6 @@
     import CustomEdgeMarker from "./Node/CustomEdgeMarker.svelte";
     import {
         type Presentation,
-        type ButtonElement,
         createPresentationElement,
     } from "./types/presentation";
 
@@ -34,6 +33,7 @@
             data: {
                 label: `Slide ${index + 1}`,
                 description: `${slide.elements.length} elements`,
+                slideId: slide.id,
             },
         })),
     );

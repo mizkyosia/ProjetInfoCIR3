@@ -53,26 +53,13 @@
 
         <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
             <a
-                href="/home"
+                href="/new"
                 class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
                 onmouseenter={() => (isHovered = true)}
                 onmouseleave={() => (isHovered = false)}
             >
                 Start Designing
             </a>
-            <a
-                href="/test"
-                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/30"
-                onmouseenter={() => (isHovered = true)}
-                onmouseleave={() => (isHovered = false)}
-            >
-                Test Toolbar
-            </a>
-            <button
-                class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all"
-            >
-                Commencer un nouveau design
-            </button>
             <a
                 href="/templates"
                 class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all"

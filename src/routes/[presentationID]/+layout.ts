@@ -1,26 +1,14 @@
 import {
     getPresentation,
-    newSlide,
-    savePresentation,
 } from "$lib/db/presentations.svelte";
+import { error } from "@sveltejs/kit";
 
 export let ssr = false;
 
 export async function load(event) {
     let pres = await getPresentation(event.params.presentationID);
 
-    if (pres === null) {
-        pres = {
-            id: event.params.presentationID,
-            title: "New presentation",
-            slides: [newSlide()],
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-        };
-
-        await savePresentation(pres);
-    }
-
+    if (pres === null)  return error(404, "Presentation not found");
 
     return { presentation: pres };
 }
