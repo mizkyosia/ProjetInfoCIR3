@@ -3,9 +3,9 @@
 </script>
 
 <script lang="ts">
-    import { editorStore, selectedElementStore } from "$lib/state.svelte";
+    import { selectedElementStore } from "$lib/state.svelte";
 
-    import type { BaseElement, Element } from "$lib/types/presentation";
+    import type {  Element } from "$lib/types/presentation";
 
     let {
         data = $bindable(),
@@ -90,23 +90,6 @@
         window.removeEventListener("pointerup", onPointerUp);
     }
 </script>
-
-<svelte:window
-    onkeydown={(e) => {
-        if (
-            e.key == "Delete" &&
-            editorStore.currentSlide !== null &&
-            selected
-        ) {
-            selectedElement?.();
-            editorStore.currentSlide.elements =
-                editorStore.currentSlide.elements.filter(
-                    (s) => s.id !== data.id,
-                );
-        }
-    }}
-/>
-
 <div
     bind:this={el}
     class="element absolute touch-none select-none box-border origin-center"
@@ -151,13 +134,13 @@
 
         <!-- resize handle -->
         <div
-            class="absolute h-3 w-3 border-2 border-blue-500 rounded-full bg-white -bottom-4 -right-4 cursor-nwse-resize"
+            class="absolute h-3 w-3 border-2 z-1000 border-blue-500 rounded-full bg-white -bottom-4 -right-4 cursor-nwse-resize"
             onpointerdown={startResize}
         ></div>
 
         <!-- rotate handle -->
         <div
-            class="absolute h-3 w-3 border-2 border-blue-500 rounded-full bg-white -top-7 left-[50%] -translate-x-[50%] cursor-grab"
+            class="absolute h-3 w-3 border-2 border-blue-500 z-1000 rounded-full bg-white -top-7 left-[50%] -translate-x-[50%] cursor-grab"
             onpointerdown={startRotate}
         ></div>
     {/if}

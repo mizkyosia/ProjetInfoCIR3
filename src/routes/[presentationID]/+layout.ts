@@ -3,7 +3,6 @@ import {
     newSlide,
     savePresentation,
 } from "$lib/db/presentations.svelte";
-import { editorStore } from "$lib/state.svelte.js";
 
 export let ssr = false;
 

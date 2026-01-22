@@ -7,10 +7,13 @@
     import { savePresentation } from "$lib/db/presentations.svelte.js";
     import Button from "$lib/components/widgets/Button.svelte";
     import Text from "$lib/components/widgets/Text.svelte";
+    import NewChart from "$lib/components/widgets/Chart.svelte";
+    import { selectedElement } from "$lib/components/widgets/Base.svelte";
 
     const { data } = $props();
 
     $effect(() => {
+        selectedElement?.();
         editorStore.currentSlide =
             editorStore.presentation.slides.find((s) => s.id === data.slide) ??
             null;
@@ -40,6 +43,8 @@
             <Button bind:data={editorStore.currentSlide.elements[i]} />
         {:else if editorStore.currentSlide.elements[i].type === "text"}
             <Text bind:data={editorStore.currentSlide.elements[i]} />
+        {:else if editorStore.currentSlide.elements[i].type === "chart"}
+            <NewChart bind:data={editorStore.currentSlide.elements[i]} />
         {/if}
     {/each}
 {/if}

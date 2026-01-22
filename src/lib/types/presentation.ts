@@ -27,6 +27,7 @@ type ElementMap = {
     table: TableElement;
     shape: ShapeElement;
     button: ButtonElement;
+    chart: ChartElement;
 };
 
 export type BaseElement = {
@@ -86,6 +87,28 @@ export type ShapeElement = BaseElement & {
     shapeType: ShapeType;
 };
 
+export type ChartRecord = {
+    label: string;
+    valeurs: number[];
+    couleur: string;
+};
+
+export type PieChart = {
+    label: string;
+}
+
+export type Serie = {
+    label: string;
+    valeurs: number[];
+    couleur: string;
+};
+
+export type ChartElement = BaseElement & {
+    type: "chart";
+    chartType: "bar" | "line" | "pie";
+    data: Serie[];
+};
+
 export type ElementProps<T extends Element> = { data: T };
 
 export function createPresentationElement<T extends keyof ElementMap>(
@@ -127,6 +150,21 @@ export function createPresentationElement<T extends keyof ElementMap>(
         },
         button: {
             slideId: "",
+        },
+        chart: {
+            chartType: "bar",
+            data: [
+                {
+                    label: "Série 1",
+                    valeurs: [10, 20, 30],
+                    couleur: "#ff6384",
+                },
+                {
+                    label: "Série 2",
+                    valeurs: [15, 25, 35],
+                    couleur: "#36a2eb", 
+                }
+            ],
         },
     };
 

@@ -73,8 +73,7 @@
                 class="
         w-14 rounded bg-neutral-800 p-1
         text-white outline-none
-        border border-neutral-700 text-xs
-      "
+        border border-neutral-700 text-xs"
             />
         </div>
         <button

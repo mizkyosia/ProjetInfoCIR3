@@ -18,6 +18,10 @@
         },
         { icon: "❓", label: "Quizz" },
         { icon: "🔘", label: "Buttons" },
+        {
+            icon: '<i class="fa fa-gear" aria-hidden="true"></i>',
+            label: "Settings",
+        },
     ];
 
     import { listImageURLs, getImageURL, saveImage } from "$lib/db/images";
@@ -46,6 +50,9 @@
     let zoom = $state(1);
     let pan = $state({ x: 0, y: 0 });
     let isSidebarOpen = $state(false);
+
+    let quizzAnswers = [];
+
     let boardElement: HTMLDivElement; // Reference to the board div
 
     let uploadedImages: Awaited<ReturnType<typeof listImageURLs>> = $state([]);
@@ -55,14 +62,16 @@
         const unsubscribe = beforeNavigate(({ from, to, cancel }) => {
             // example: save presentation before navigating
             savePresentation(editorStore.presentation);
-            updateSlideThumbnail(
-                editorStore.currentSlide?.id ?? "",
-                boardElement,
-            );
         });
 
         return unsubscribe; // optional cleanup
     });
+
+    setInterval(() => {
+        if (editorStore.currentSlide) {
+            updateSlideThumbnail(editorStore.currentSlide.id, boardElement);
+        }
+    }, 10000); // every 30 seconds
 
     // --- Gestion du sélecteur ---
     let hoverRow = $state(0),
@@ -138,7 +147,6 @@
     let fullscreenComponent: Fullscreen | undefined = $state();
     let isFull = $state(false);
 
-    // ✅ Taille "réelle" de la white board (modifiable)
     let showResizePopup = $state(false);
 
     function closeResizePopup() {
@@ -447,7 +455,8 @@
                 >
                 <div class="h-4 w-px bg-white/30"></div>
                 <span class="text-sm opacity-90"
-                    >Sans nom {editorStore.currentSlide?.width}x{editorStore.currentSlide?.height}
+                    >Sans nom {editorStore.currentSlide?.width}x{editorStore
+                        .currentSlide?.height}
                 </span>
 
                 <button
@@ -458,6 +467,18 @@
                 >
                     <i class="fa fa-arrows-alt" aria-hidden="true"></i> Full screen
                 </button>
+
+                <a
+                    href="/{presentation.id}"
+                    class="group flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/20 transition-all duration-200 cursor-pointer"
+                    title="Tooltip text"
+                >
+                    <Icon
+                        icon="material-symbols:graph-1"
+                        width="24"
+                        height="24"
+                    />
+                </a>
             </div>
 
             {#if showResizePopup}
@@ -476,16 +497,21 @@
 
                     <div class="resize-row">
                         <span class="label">Width</span>
-                        <span class="value">{editorStore.currentSlide?.width}px</span>
+                        <span class="value"
+                            >{editorStore.currentSlide?.width}px</span
+                        >
                     </div>
 
                     <div class="resize-row">
                         <span class="label">Height</span>
-                        <span class="value">{editorStore.currentSlide?.height}px</span>
+                        <span class="value"
+                            >{editorStore.currentSlide?.height}px</span
+                        >
                     </div>
 
                     <div class="resize-big">
-                        {editorStore.currentSlide?.width} × {editorStore.currentSlide?.height}
+                        {editorStore.currentSlide?.width} × {editorStore
+                            .currentSlide?.height}
                     </div>
 
                     {#if resizing}
@@ -516,7 +542,9 @@
                     role="region"
                     aria-label="main"
                     class="bg-white w-200 h-112.5 shadow-xl relative group origin-center will-change-transform"
-                    style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{editorStore.currentSlide?.width}px; height:{editorStore.currentSlide?.height}px;"
+                    style="transform: translate({pan.x}px, {pan.y}px) scale({zoom}); width:{editorStore
+                        .currentSlide?.width}px; height:{editorStore
+                        .currentSlide?.height}px;"
                 >
                     {@render children()}
                     <!-- ✅ Handle resize (coin bas-droit) -->

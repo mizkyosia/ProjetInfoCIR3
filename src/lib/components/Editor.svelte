@@ -3,6 +3,7 @@
     import Icon from "@iconify/svelte";
     import Select from "./Select.svelte";
     import type { QuizzElement } from "$lib/types/presentation";
+    import { selectedElement } from "./widgets/Base.svelte";
 
     let borderStyleSelect = $state();
 </script>
@@ -101,6 +102,25 @@
         />
 
         {@render selectedElementStore?.snippet?.()}
+
+        <Icon
+            icon="mdi:trash-can-outline"
+            class="text-xl cursor-pointer hover:text-red-500 transition-colors"
+            onclick={() => {
+                if (editorStore.currentSlide === null) return;
+                console.log(
+                    "Deleting element",
+                    selectedElementStore.element?.id,
+                );
+                editorStore.currentSlide.elements =
+                    editorStore.currentSlide.elements.filter(
+                        (s) => s.id !== selectedElementStore.element?.id,
+                    );
+                selectedElementStore.element = null;
+                selectedElementStore.snippet = null;
+                selectedElement?.();
+            }}
+        />
     </div>
 {/if}
 

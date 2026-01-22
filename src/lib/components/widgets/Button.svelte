@@ -1,29 +1,22 @@
 <script lang="ts">
-    import { getImageURL } from "$lib/db/images";
-    import { presentation } from "$lib/maheb/presentationStore";
-    import { editorStore, imageUrlMap } from "$lib/state.svelte";
-    import type {
-        BaseElement,
-        ButtonElement,
-        ElementProps,
-        ImageElement,
-    } from "$lib/types/presentation";
+    import { editorStore } from "$lib/state.svelte";
+    import type { ButtonElement, ElementProps } from "$lib/types/presentation";
+    import type { Snippet } from "svelte";
     import Select from "../Select.svelte";
     import Base from "./Base.svelte";
 
     let { data = $bindable() }: ElementProps<ButtonElement> = $props();
-    data.slideId = editorStore.currentSlide?.id ?? "";
 </script>
 
 <Base bind:data>
     {#snippet editor()}
         <Select
-            value={editorStore.currentSlide?.id}
+            bind:value={data.slideId}
             options={editorStore.presentation.slides.map((s, i) => {
                 return {
                     value: s.id,
-                    render: slideNumber,
-                    args: i,
+                    render: slideNumber as Snippet,
+                    args: i + 1,
                 };
             })}
         />
