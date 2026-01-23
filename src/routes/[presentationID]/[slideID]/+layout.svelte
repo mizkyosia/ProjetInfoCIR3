@@ -86,7 +86,12 @@
 
     setInterval(() => {
         if (editorStore.currentSlide) {
-            updateSlideThumbnail(editorStore.currentSlide.id, boardElement);
+            updateSlideThumbnail(
+                editorStore.currentSlide.id,
+                boardElement,
+                editorStore.currentSlide.width,
+                editorStore.currentSlide.height,
+            );
         }
     }, 10000);
 

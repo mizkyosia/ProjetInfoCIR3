@@ -99,7 +99,7 @@ function getElementBoundingBox(
 /**
  * Renders a single slide container to canvas
  */
-async function renderSlideToCanvas(
+export async function renderSlideToCanvas(
     slideElement: HTMLElement,
     slideWidth: number,
     slideHeight: number,
