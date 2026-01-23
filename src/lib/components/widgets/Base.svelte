@@ -91,7 +91,7 @@
     }
 </script>
 
-{#if editorStore.exporting}
+{#if editorStore.exporting || editorStore.viewing}
     <div
         class="w-full h-full pointer-events-auto z-10 box-border absolute"
         style="
