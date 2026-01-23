@@ -63,13 +63,16 @@
             border-radius: {data.borderRadius}px;
             background-color: {data.fillColor};"
     >
-        <h3 class="mt-0 mb-5 text-neutral-900" contenteditable="true">
+        <h3
+            class="mt-0 mb-5 text-neutral-900"
+            contenteditable={!editorStore.exporting}
+        >
             {data.question}
         </h3>
 
         <div class="flex flex-col gap-2.5">
             {#each data.options as option, index}
-                {#if editorStore.viewing}
+                {#if editorStore.viewing || editorStore.exporting}
                     <button
                         class={[
                             "p-3 text-left border-2 rounded-md cursor-pointer transition-all",

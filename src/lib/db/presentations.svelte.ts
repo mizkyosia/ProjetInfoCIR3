@@ -25,6 +25,7 @@ export async function deletePresentation(id: string) {
 export function newSlide(): Slide {
     return {
         id: crypto.randomUUID(),
+        name: "New Slide",
         background: {
             type: "color",
             value: "#ffffff",

@@ -9,6 +9,7 @@ export type Presentation = {
 
 export type Slide = {
     id: string;
+    name: string;
     width: number;
     height: number;
     background: {
@@ -106,6 +107,8 @@ export type Serie = {
 export type ChartElement = BaseElement & {
     type: "chart";
     chartType: "bar" | "line" | "pie";
+    title?: string;
+    xAxisLabels?: string[];
     data: Serie[];
 };
 
@@ -162,7 +165,7 @@ export function createPresentationElement<T extends keyof ElementMap>(
                 {
                     label: "Série 2",
                     valeurs: [15, 25, 35],
-                    couleur: "#36a2eb", 
+                    couleur: "#36a2eb",
                 }
             ],
         },

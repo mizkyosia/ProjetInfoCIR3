@@ -3,9 +3,9 @@
 </script>
 
 <script lang="ts">
-    import { selectedElementStore } from "$lib/state.svelte";
+    import { editorStore, selectedElementStore } from "$lib/state.svelte";
 
-    import type {  Element } from "$lib/types/presentation";
+    import type { Element } from "$lib/types/presentation";
 
     let {
         data = $bindable(),
@@ -90,58 +90,74 @@
         window.removeEventListener("pointerup", onPointerUp);
     }
 </script>
-<div
-    bind:this={el}
-    class="element absolute touch-none select-none box-border origin-center"
-    style="
-    transform:
-      translate({data.x}px, {data.y}px)
-      rotate({data.rotation}rad);
+
+{#if editorStore.exporting}
+    <div
+        class="w-full h-full pointer-events-auto z-10 box-border absolute"
+        style="
+    rotate: {data.rotation}rad;
+    left: {data.x}px;
+    top: {data.y}px;
     width: {data.width}px;
     height: {data.height}px;
-    z-index: {data.zIndex};
+    opacity: {data.opacity};
   "
-    onpointerdown={(e) => {
-        e.stopPropagation();
-        if (selectedElement != undefined) selectedElement();
-
-        selectedElement = () => {
-            selected = false;
-            selectedElement = undefined;
-            selectedElementStore.element = null;
-            selectedElementStore.snippet = null;
-            return data.id;
-        };
-        selected = true;
-        selectedElementStore.element = data;
-        selectedElementStore.snippet = editor ?? null;
-    }}
->
-    <!-- actual content (NOT draggable) -->
-    <div
-        class="w-full h-full pointer-events-auto z-10 relative box-border"
-        style="opacity: {data.opacity};"
     >
         {@render children?.()}
     </div>
+{:else}
+    <div
+        bind:this={el}
+        class="element absolute touch-none select-none box-border origin-center"
+        style="
+    rotate: {data.rotation}rad;
+    left: {data.x}px;
+    top: {data.y}px;
+    width: {data.width}px;
+    height: {data.height}px;
+  "
+        onpointerdown={(e) => {
+            e.stopPropagation();
+            if (selectedElement != undefined) selectedElement();
 
-    {#if selected}
-        <!-- border drag area -->
+            selectedElement = () => {
+                selected = false;
+                selectedElement = undefined;
+                selectedElementStore.element = null;
+                selectedElementStore.snippet = null;
+                return data.id;
+            };
+            selected = true;
+            selectedElementStore.element = data;
+            selectedElementStore.snippet = editor ?? null;
+        }}
+    >
+        <!-- actual content (NOT draggable) -->
         <div
-            class="absolute -inset-2 z-0 cursor-grab border-2 border-blue-500 pointer-events-auto bg-transparent"
-            onpointerdown={startMove}
-        ></div>
+            class="w-full h-full pointer-events-auto z-10 relative box-border"
+            style="opacity: {data.opacity};"
+        >
+            {@render children?.()}
+        </div>
 
-        <!-- resize handle -->
-        <div
-            class="absolute h-3 w-3 border-2 z-1000 border-blue-500 rounded-full bg-white -bottom-4 -right-4 cursor-nwse-resize"
-            onpointerdown={startResize}
-        ></div>
+        {#if selected}
+            <!-- border drag area -->
+            <div
+                class="absolute -inset-2 z-0 cursor-grab border-2 border-blue-500 pointer-events-auto bg-transparent"
+                onpointerdown={startMove}
+            ></div>
 
-        <!-- rotate handle -->
-        <div
-            class="absolute h-3 w-3 border-2 border-blue-500 z-1000 rounded-full bg-white -top-7 left-[50%] -translate-x-[50%] cursor-grab"
-            onpointerdown={startRotate}
-        ></div>
-    {/if}
-</div>
+            <!-- resize handle -->
+            <div
+                class="absolute h-3 w-3 border-2 z-1000 border-blue-500 rounded-full bg-white -bottom-4 -right-4 cursor-nwse-resize"
+                onpointerdown={startResize}
+            ></div>
+
+            <!-- rotate handle -->
+            <div
+                class="absolute h-3 w-3 border-2 border-blue-500 z-1000 rounded-full bg-white -top-7 left-[50%] -translate-x-[50%] cursor-grab"
+                onpointerdown={startRotate}
+            ></div>
+        {/if}
+    </div>
+{/if}

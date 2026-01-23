@@ -7,7 +7,14 @@
     let {
         isFull = $bindable(false),
         children,
-    }: { isFull?: boolean; children: Snippet } = $props();
+        onFullscreenEnter = undefined,
+        onFullscreenExit = undefined,
+    }: {
+        isFull?: boolean;
+        children: Snippet;
+        onFullscreenEnter?: () => void;
+        onFullscreenExit?: () => void;
+    } = $props();
     let fsContainer: HTMLElement | null = $state(null);
 
     // boring plain js fullscreen support stuff below
@@ -58,6 +65,13 @@
                 document.mozFullScreenElement ||
                 document.msFullscreenElement
             );
+
+            // Call the appropriate callback
+            if (isFull && onFullscreenEnter) {
+                onFullscreenEnter();
+            } else if (!isFull && onFullscreenExit) {
+                onFullscreenExit();
+            }
         };
 
         document.addEventListener("fullscreenchange", handleFullscreenChange);

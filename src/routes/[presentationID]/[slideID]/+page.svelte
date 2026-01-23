@@ -7,7 +7,7 @@
     import { savePresentation } from "$lib/db/presentations.svelte.js";
     import Button from "$lib/components/widgets/Button.svelte";
     import Text from "$lib/components/widgets/Text.svelte";
-    import NewChart from "$lib/components/widgets/Chart.svelte";
+    import NewChart from "$lib/components/widgets/NewChart.svelte";
     import { selectedElement } from "$lib/components/widgets/Base.svelte";
 
     const { data } = $props();

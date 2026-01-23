@@ -1,6 +1,12 @@
 <script lang="ts">
     import html2canvas from "html2canvas";
-    let showShareMenu = false;
+    import { editorStore } from "$lib/state.svelte";
+    import { exportPresentationToPDF } from "$lib/utils/exportPDF";
+    import { exportPresentationToHTML } from "$lib/utils/exportHTML";
+
+    let showShareMenu = $state(false);
+    let isExporting = $state(false);
+    let exportProgress = $state({ current: 0, total: 0 });
 
     function toggleShareMenu() {
         showShareMenu = !showShareMenu;
@@ -22,13 +28,13 @@
         // Si c'est rgb/rgba, convertir en hsl
         const rgb = hsl.match(/\d+/g);
         if (rgb && rgb.length >= 3) {
-            const r = rgb[0] / 255;
-            const g = rgb[1] / 255;
-            const b = rgb[2] / 255;
+            const r = parseInt(rgb[0]) / 255;
+            const g = parseInt(rgb[1]) / 255;
+            const b = parseInt(rgb[2]) / 255;
             const max = Math.max(r, g, b);
             const min = Math.min(r, g, b);
-            let h,
-                s,
+            let h = 0,
+                s = 0,
                 l = (max + min) / 2;
 
             if (max === min) {
@@ -69,7 +75,7 @@
             }
 
             // Cloner l'élément
-            const clonedElement = element.cloneNode(true);
+            const clonedElement = element.cloneNode(true) as HTMLElement;
             clonedElement.style.position = "absolute";
             clonedElement.style.left = "-9999px";
             clonedElement.style.top = "-9999px";
@@ -94,9 +100,9 @@
                 const cs = getComputedStyle(origElements[i]);
 
                 for (const prop of colorProps) {
-                    const v = cs[prop];
+                    const v = cs.getPropertyValue(prop);
                     if (v && v.includes("oklch")) {
-                        allElements[i].style[prop] = toHSL(v);
+                        (allElements[i] as HTMLElement).style.setProperty(prop, toHSL(v));
                     }
                 }
             }
@@ -132,104 +138,55 @@
             showShareMenu = false;
         } catch (error) {
             console.error("Erreur lors de l'export PDF:", error);
-            alert("Erreur: " + error.message);
+            alert("Erreur: " + (error instanceof Error ? error.message : String(error)));
         }
     }
     function exportHTML() {
         try {
-            const element = document.getElementById("presentation");
-
-            if (!element) {
-                console.error("Presentation element not found");
+            if (!editorStore.presentation) {
+                alert("No presentation loaded");
                 return;
             }
 
-            // Cloner l'élément et convertir oklch en hsl
-            const clonedElement = element.cloneNode(true);
-            const allElements = clonedElement.querySelectorAll("*");
-            const origElements = element.querySelectorAll("*");
-
-            const colorProps = [
-                "color",
-                "backgroundColor",
-                "borderTopColor",
-                "borderRightColor",
-                "borderBottomColor",
-                "borderLeftColor",
-                "outlineColor",
-                "textDecorationColor",
-            ];
-
-            for (let i = 0; i < allElements.length; i++) {
-                const cs = getComputedStyle(origElements[i]);
-
-                for (const prop of colorProps) {
-                    const v = cs[prop];
-                    if (v && v.includes("oklch")) {
-                        allElements[i].style[prop] = toHSL(v);
-                    }
-                }
-            }
-
-            const htmlContent = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presentation</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .presentation {
-            width: 800px;
-            height: 450px;
-            background-color: white;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body>
-    <div class="presentation">
-        ${clonedElement.innerHTML}
-    </div>
-</body>
-</html>`;
-
-            const blob = new Blob([htmlContent], { type: "text/html" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "presentation.html";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            showShareMenu = false;
+            exportPresentationToHTML(editorStore.presentation).then(() => {
+                showShareMenu = false;
+            });
         } catch (error) {
             console.error("Error exporting HTML:", error);
+            alert("Error exporting HTML: " + (error instanceof Error ? error.message : String(error)));
         }
     }
 
     function sendLink() {
         console.log("Sending link...");
         showShareMenu = false;
+    }
+
+    async function exportAllSlidesPDF() {
+        try {
+            if (!editorStore.presentation) {
+                alert("No presentation loaded");
+                return;
+            }
+
+            isExporting = true;
+            exportProgress = { current: 0, total: editorStore.presentation.slides.length };
+
+            await exportPresentationToPDF(editorStore.presentation, {
+                quality: "high",
+                onProgress: (current, total) => {
+                    exportProgress = { current, total };
+                },
+            });
+
+            showShareMenu = false;
+        } catch (error) {
+            console.error("Error exporting presentation:", error);
+            alert("Error exporting presentation: " + (error instanceof Error ? error.message : String(error)));
+        } finally {
+            isExporting = false;
+            exportProgress = { current: 0, total: 0 };
+        }
     }
 </script>
 
@@ -243,29 +200,52 @@
 
     {#if showShareMenu}
         <div
-            class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 border border-gray-200"
+            class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 border border-gray-200"
         >
-            <button
-                onclick={exportPDF}
-                class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 first:rounded-t-lg border-b border-gray-100 text-black"
-            >
-                <span>📄</span>
-                <span>Export as PDF</span>
-            </button>
-            <button
-                onclick={exportHTML}
-                class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black"
-            >
-                <span>🌐</span>
-                <span>Export as HTML</span>
-            </button>
-            <button
-                onclick={sendLink}
-                class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 last:rounded-b-lg text-black"
-            >
-                <span>🔗</span>
-                <span>Send Link</span>
-            </button>
+            {#if isExporting}
+                <div class="px-4 py-4 text-black text-sm">
+                    <div class="mb-2">
+                        Exporting slides: {exportProgress.current} / {exportProgress.total}
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style="width: {exportProgress.total > 0
+                                ? (exportProgress.current / exportProgress.total) * 100
+                                : 0}%"
+                        ></div>
+                    </div>
+                </div>
+            {:else}
+                <button
+                    onclick={exportAllSlidesPDF}
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 first:rounded-t-lg border-b border-gray-100 text-black font-semibold text-sm"
+                >
+                    <span>📑</span>
+                    <span>Export All Slides as PDF</span>
+                </button>
+                <button
+                    onclick={exportPDF}
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black text-sm"
+                >
+                    <span>📄</span>
+                    <span>Export Current Slide as PDF</span>
+                </button>
+                <button
+                    onclick={exportHTML}
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black text-sm"
+                >
+                    <span>🌐</span>
+                    <span>Export All Slides as Interactive HTML</span>
+                </button>
+                <button
+                    onclick={sendLink}
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 last:rounded-b-lg text-black text-sm"
+                >
+                    <span>🔗</span>
+                    <span>Send Link</span>
+                </button>
+            {/if}
         </div>
     {/if}
 </div>

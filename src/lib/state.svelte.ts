@@ -14,6 +14,8 @@ export type EditorStore = {
     presentation: Presentation;
     currentSlide: Slide | null;
     viewing: boolean;
+    exporting: boolean;
+    canResizeCanvas: boolean;
     updateSlide: (updater: (slide: Slide) => any) => any;
 };
 
@@ -21,6 +23,8 @@ export const editorStore: EditorStore = $state({
     presentation: null as unknown as Presentation,
     currentSlide: null,
     viewing: false,
+    exporting: false,
+    canResizeCanvas: true,
     updateSlide: (updater) => {
         if (
             editorStore.currentSlide === null ||

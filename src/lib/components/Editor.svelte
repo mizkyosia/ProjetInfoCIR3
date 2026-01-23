@@ -101,6 +101,73 @@
             class="h-6 w-0.5 rounded-2xl bg-neutral-500 opacity-70 border-none"
         />
 
+        <!-- Z-index controls -->
+        <div class="flex items-center gap-1">
+            <Icon icon="mdi:arrange-send-to-back" width="16" height="16" />
+            <button
+                onclick={() => {
+                    if (
+                        selectedElementStore.element === null ||
+                        editorStore.currentSlide === null
+                    )
+                        return;
+                    const currentIndex =
+                        editorStore.currentSlide.elements.indexOf(
+                            selectedElementStore.element,
+                        );
+                    if (
+                        currentIndex <
+                        editorStore.currentSlide.elements.length - 1
+                    ) {
+                        // Move forward (increase z-index)
+                        const temp =
+                            editorStore.currentSlide.elements[currentIndex];
+                        editorStore.currentSlide.elements[currentIndex] =
+                            editorStore.currentSlide.elements[currentIndex + 1];
+                        editorStore.currentSlide.elements[currentIndex + 1] =
+                            temp;
+                    }
+                }}
+                title="Move backward"
+                class="p-1 hover:bg-neutral-700 rounded transition-colors"
+            >
+                <Icon icon="mdi:arrow-up" width="14" height="14" />
+            </button>
+            <button
+                onclick={() => {
+                    if (
+                        selectedElementStore.element === null ||
+                        editorStore.currentSlide === null
+                    )
+                        return;
+                    const currentIndex =
+                        editorStore.currentSlide.elements.indexOf(
+                            selectedElementStore.element,
+                        );
+                    if (currentIndex > 0) {
+                        // Move backward (decrease z-index)
+                        const temp =
+                            editorStore.currentSlide.elements[currentIndex];
+                        editorStore.currentSlide.elements[currentIndex] =
+                            editorStore.currentSlide.elements[currentIndex - 1];
+                        editorStore.currentSlide.elements[currentIndex - 1] =
+                            temp;
+                        editorStore.currentSlide.elements = [
+                            ...editorStore.currentSlide.elements,
+                        ];
+                    }
+                }}
+                title="Move forward"
+                class="p-1 hover:bg-neutral-700 rounded transition-colors"
+            >
+                <Icon icon="mdi:arrow-down" width="14" height="14" />
+            </button>
+        </div>
+
+        <hr
+            class="h-6 w-0.5 rounded-2xl bg-neutral-500 opacity-70 border-none"
+        />
+
         {@render selectedElementStore?.snippet?.()}
 
         <Icon

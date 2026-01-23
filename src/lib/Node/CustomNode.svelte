@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { Handle, Position } from "@xyflow/svelte";
 
     let { data, isConnectable } = $props();
@@ -43,13 +43,11 @@
     />
 
     <div class="node-content">
-        <strong>{data.label}</strong>
-        {#if data.type}
-            <div class="node-type">{data.type}</div>
+        {#if data.thumbnail}
+            <img src={data.thumbnail} alt={data.title} class="node-thumbnail" />
         {/if}
-        {#if data.description}
-            <div class="node-desc">{data.description}</div>
-        {/if}
+        <strong class="node-title">{data.title}</strong>
+        <div class="node-elements">{data.elementCount} elements</div>
     </div>
 
     <!-- Right Handle -->
@@ -91,9 +89,29 @@
         border-radius: 5px;
         background: #fff;
         border: 1px solid #777;
-        min-width: 100px;
+        min-width: 140px;
         font-size: 12px;
         text-align: center;
+    }
+
+    .node-thumbnail {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+
+    .node-title {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 4px;
+        word-break: break-word;
+    }
+
+    .node-elements {
+        font-size: 10px;
+        color: #666;
     }
 
     .node-type {
