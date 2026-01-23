@@ -4,6 +4,7 @@
     import Base from "./Base.svelte";
     import Select from "../Select.svelte";
     import Icon from "@iconify/svelte";
+    import { editorStore } from "$lib/state.svelte";
 
     let { data = $bindable() }: ElementProps<TextElement> = $props();
 
@@ -111,16 +112,24 @@
         </div>
     {/snippet}
 
-    <div
-        class="whitespace-pre-wrap wrap-break-word w-full h-full outline-none"
-        aria-label="Editable text zone"
-        onselectionchange={onSelectionChange}
-        contenteditable
-        role="textbox"
-        bind:innerHTML={data.text}
-        bind:this={editorDiv}
-        tabindex="0"
-    ></div>
+    {#if editorStore.exporting}
+        <div
+            class="whitespace-pre-wrap wrap-break-word w-full h-full outline-none"
+        >
+            {@html data.text}
+        </div>
+    {:else}
+        <div
+            class="whitespace-pre-wrap wrap-break-word w-full h-full outline-none"
+            aria-label="Editable text zone"
+            onselectionchange={onSelectionChange}
+            role="textbox"
+            contenteditable
+            bind:innerHTML={data.text}
+            bind:this={editorDiv}
+            tabindex="0"
+        ></div>
+    {/if}
 </Base>
 
 {#snippet fontTitle(font: string)}

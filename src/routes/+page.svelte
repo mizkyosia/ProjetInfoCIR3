@@ -1,6 +1,7 @@
 <script lang="ts">
     import PresentationPreview from "$lib/components/PresentationPreview.svelte";
-    import { listPresentations } from "$lib/db/presentations.svelte";
+    import { listPresentations, savePresentation } from "$lib/db/presentations.svelte";
+    import { importPresentationFromJSON } from "$lib/utils/exportJSON";
     import type { Presentation } from "$lib/types/presentation";
 
     let isHovered = false;
@@ -8,6 +9,29 @@
     let presentations: Presentation[] = $state.raw([]);
 
     listPresentations().then((l) => (presentations = l));
+
+    async function handleJSONImport(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        
+        if (!file) return;
+
+        try {
+            const presentation = await importPresentationFromJSON(file);
+            await savePresentation(presentation);
+            
+            // Refresh presentations list
+            presentations = await listPresentations();
+            
+            // Reset input
+            input.value = '';
+            
+            alert('Presentation imported successfully!');
+        } catch (error) {
+            console.error('Error importing presentation:', error);
+            alert('Error importing presentation: ' + (error instanceof Error ? error.message : String(error)));
+        }
+    }
 </script>
 
 <div
@@ -60,12 +84,21 @@
             >
                 Start Designing
             </a>
-            <a
+            <!-- <a
                 href="/templates"
                 class="flex-1 bg-white border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-purple-700 text-lg px-8 py-4 rounded-xl font-bold transition-all"
             >
                 Templates déjà crées
-            </a>
+            </a> -->
+            <label class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/30 cursor-pointer flex items-center justify-center">
+                Import JSON
+                <input 
+                    type="file" 
+                    accept=".json" 
+                    onchange={handleJSONImport}
+                    class="hidden"
+                />
+            </label>
         </div>
     </header>
 

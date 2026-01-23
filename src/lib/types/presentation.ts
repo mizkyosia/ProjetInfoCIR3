@@ -7,6 +7,10 @@ export type Presentation = {
     updatedAt: number;
 };
 
+export type PresentationSaveData = Presentation & {
+    assets: { [assetId: string]: string }; // Mapping of asset IDs to their data (e.g., base64 strings)
+};
+
 export type Slide = {
     id: string;
     name: string;

@@ -11,7 +11,6 @@
     import CustomNode from "$lib/Node/CustomNode.svelte";
     import CustomEdgeMarker from "$lib/Node/CustomEdgeMarker.svelte";
     import {
-        type Presentation,
         createPresentationElement,
     } from "$lib/types/presentation";
     import { getSlideThumbnailURL } from "$lib/db/thumbnails.js";

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { editorStore } from "$lib/state.svelte";
     import type {
-        BaseElement,
         ElementProps,
         QuizzElement,
     } from "$lib/types/presentation";
@@ -31,17 +30,6 @@
     function resetQuiz() {
         selectedIndex = null;
         issubmitted = false;
-    }
-
-    // --- Edit Logic ---
-    function addOption() {
-        data.options.push(`Option ${data.options.length + 1}`);
-    }
-
-    function removeOption(index: number) {
-        data.options = data.options.filter((_, i) => i !== index);
-        if (data.correctAnswerIndex === index) data.correctAnswerIndex = 0;
-        if (data.correctAnswerIndex > index) data.correctAnswerIndex--;
     }
 </script>
 
@@ -75,7 +63,7 @@
                 {#if editorStore.viewing || editorStore.exporting}
                     <button
                         class={[
-                            "p-3 text-left border-2 rounded-md cursor-pointer transition-all",
+                            "p-3 text-left border-2 rounded-md cursor-pointer transition-all quiz-option",
                             {
                                 "border-blue-500 bg-blue-200 font-bold":
                                     selectedIndex === index,
@@ -139,7 +127,7 @@
         <div class="mt-5 flex justify-between items-center">
             {#if !issubmitted}
                 <button
-                    class="py-2.5 px-5 bg-blue-600 text-white border-0 rounded-md cursor-pointer"
+                    class="py-2.5 px-5 bg-blue-600 text-white border-0 rounded-md cursor-pointer quizz-submit-button"
                     onclick={submitAnswer}
                     disabled={selectedIndex === null}
                 >
@@ -147,7 +135,7 @@
                 </button>
             {:else}
                 <button
-                    class="py-2.5 px-5 bg-neutral-500 text-white border-0 rounded-md cursor-pointer"
+                    class="py-2.5 px-5 bg-neutral-500 text-white border-0 rounded-md cursor-pointer quizz-submit-button"
                     onclick={resetQuiz}>Recommencer</button
                 >
             {/if}

@@ -3,6 +3,7 @@
     import { editorStore } from "$lib/state.svelte";
     import { exportPresentationToPDF } from "$lib/utils/exportPDF";
     import { exportPresentationToHTML } from "$lib/utils/exportHTML";
+    import { exportPresentationToJSON } from "$lib/utils/exportJSON";
 
     let showShareMenu = $state(false);
     let isExporting = $state(false);
@@ -102,7 +103,10 @@
                 for (const prop of colorProps) {
                     const v = cs.getPropertyValue(prop);
                     if (v && v.includes("oklch")) {
-                        (allElements[i] as HTMLElement).style.setProperty(prop, toHSL(v));
+                        (allElements[i] as HTMLElement).style.setProperty(
+                            prop,
+                            toHSL(v),
+                        );
                     }
                 }
             }
@@ -138,7 +142,10 @@
             showShareMenu = false;
         } catch (error) {
             console.error("Erreur lors de l'export PDF:", error);
-            alert("Erreur: " + (error instanceof Error ? error.message : String(error)));
+            alert(
+                "Erreur: " +
+                    (error instanceof Error ? error.message : String(error)),
+            );
         }
     }
     function exportHTML() {
@@ -153,13 +160,34 @@
             });
         } catch (error) {
             console.error("Error exporting HTML:", error);
-            alert("Error exporting HTML: " + (error instanceof Error ? error.message : String(error)));
+            alert(
+                "Error exporting HTML: " +
+                    (error instanceof Error ? error.message : String(error)),
+            );
         }
     }
 
     function sendLink() {
         console.log("Sending link...");
         showShareMenu = false;
+    }
+
+    async function exportJSON() {
+        try {
+            if (!editorStore.presentation) {
+                alert("No presentation loaded");
+                return;
+            }
+
+            await exportPresentationToJSON(editorStore.presentation);
+            showShareMenu = false;
+        } catch (error) {
+            console.error("Error exporting presentation to JSON:", error);
+            alert(
+                "Error exporting presentation: " +
+                    (error instanceof Error ? error.message : String(error)),
+            );
+        }
     }
 
     async function exportAllSlidesPDF() {
@@ -170,7 +198,10 @@
             }
 
             isExporting = true;
-            exportProgress = { current: 0, total: editorStore.presentation.slides.length };
+            exportProgress = {
+                current: 0,
+                total: editorStore.presentation.slides.length,
+            };
 
             await exportPresentationToPDF(editorStore.presentation, {
                 quality: "high",
@@ -182,7 +213,10 @@
             showShareMenu = false;
         } catch (error) {
             console.error("Error exporting presentation:", error);
-            alert("Error exporting presentation: " + (error instanceof Error ? error.message : String(error)));
+            alert(
+                "Error exporting presentation: " +
+                    (error instanceof Error ? error.message : String(error)),
+            );
         } finally {
             isExporting = false;
             exportProgress = { current: 0, total: 0 };
@@ -211,7 +245,9 @@
                         <div
                             class="bg-blue-500 h-2 rounded-full transition-all duration-300"
                             style="width: {exportProgress.total > 0
-                                ? (exportProgress.current / exportProgress.total) * 100
+                                ? (exportProgress.current /
+                                      exportProgress.total) *
+                                  100
                                 : 0}%"
                         ></div>
                     </div>
@@ -222,28 +258,21 @@
                     class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 first:rounded-t-lg border-b border-gray-100 text-black font-semibold text-sm"
                 >
                     <span>📑</span>
-                    <span>Export All Slides as PDF</span>
-                </button>
-                <button
-                    onclick={exportPDF}
-                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black text-sm"
-                >
-                    <span>📄</span>
-                    <span>Export Current Slide as PDF</span>
+                    <span>Export as PDF</span>
                 </button>
                 <button
                     onclick={exportHTML}
                     class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black text-sm"
                 >
                     <span>🌐</span>
-                    <span>Export All Slides as Interactive HTML</span>
+                    <span>Export as Interactive HTML</span>
                 </button>
                 <button
-                    onclick={sendLink}
-                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 last:rounded-b-lg text-black text-sm"
+                    onclick={exportJSON}
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-2 border-b border-gray-100 text-black text-sm"
                 >
-                    <span>🔗</span>
-                    <span>Send Link</span>
+                    <span>📋</span>
+                    <span>Export as JSON (with Images)</span>
                 </button>
             {/if}
         </div>
