@@ -86,11 +86,18 @@
 
     setInterval(() => {
         if (editorStore.currentSlide) {
-            updateSlideThumbnail(editorStore.currentSlide.id, boardElement);
+            updateSlideThumbnail(
+                editorStore.currentSlide.id,
+                boardElement,
+                editorStore.currentSlide.width,
+                editorStore.currentSlide.height,
+            );
         }
     }, 10000);
 
     function handleWheel(event: WheelEvent) {
+        if (editorStore.viewing) return;
+        
         event.preventDefault();
 
         if (event.shiftKey) {
@@ -119,10 +126,12 @@
     }
 
     function zoomIn() {
+        if (editorStore.viewing) return;
         zoom = Math.min(zoom + 0.1, 5);
     }
 
     function zoomOut() {
+        if (editorStore.viewing) return;
         zoom = Math.max(zoom - 0.1, 0.2);
     }
 

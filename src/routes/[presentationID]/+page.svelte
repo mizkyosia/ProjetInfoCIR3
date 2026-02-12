@@ -18,9 +18,6 @@
     const nodeTypes = {
         custom: CustomNode,
     };
-    const edgeTypes = {
-        customEdge: CustomEdgeMarker,
-    };
 
     let { data } = $props();
     let presentation = $derived(data.presentation);

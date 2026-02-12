@@ -1,16 +1,15 @@
 <!-- Fullscreen.svelte -->
 
 <script lang="ts">
+    import { editorStore } from "$lib/state.svelte";
     import { onMount, type Snippet } from "svelte";
 
     // define initial component state
     let {
-        isFull = $bindable(false),
         children,
         onFullscreenEnter = undefined,
         onFullscreenExit = undefined,
     }: {
-        isFull?: boolean;
         children: Snippet;
         onFullscreenEnter?: () => void;
         onFullscreenExit?: () => void;
@@ -59,7 +58,7 @@
         document.head.appendChild(link);
 
         const handleFullscreenChange = () => {
-            isFull = !!(
+            editorStore.viewing = !!(
                 document.fullscreenElement ||
                 document.webkitFullscreenElement ||
                 document.mozFullScreenElement ||
@@ -67,9 +66,9 @@
             );
 
             // Call the appropriate callback
-            if (isFull && onFullscreenEnter) {
+            if (editorStore.viewing && onFullscreenEnter) {
                 onFullscreenEnter();
-            } else if (!isFull && onFullscreenExit) {
+            } else if (!editorStore.viewing && onFullscreenExit) {
                 onFullscreenExit();
             }
         };
@@ -111,7 +110,7 @@
     export const fsToggle = () => {
         if (!fullscreenSupport) return;
 
-        if (isFull) {
+        if (editorStore.viewing) {
             exitFullscreen();
         } else {
             requestFullscreen();
@@ -120,10 +119,10 @@
 
     // the icon name is computed automagically based
     // on the state of the screen
-    let icon = $derived(isFull ? "fullscreen_exit" : "fullscreen");
+    let icon = $derived(editorStore.viewing ? "fullscreen_exit" : "fullscreen");
 </script>
 
-<div class="fs" class:isFull bind:this={fsContainer}>
+<div class="fs" class:isFull={editorStore.viewing} bind:this={fsContainer}>
     {@render children()}
     {#if fullscreenSupport}
         <button onclick={fsToggle}>

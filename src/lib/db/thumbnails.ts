@@ -1,14 +1,31 @@
-import { captureElement } from "$lib/util";
+import { renderSlideToCanvas } from "$lib/utils/exportPDF";
 import { editorDB } from "$lib/db/schema";
 import { imageUrlMap } from "$lib/state.svelte";
 
 export async function updateSlideThumbnail(
     slideId: string,
     slideElement: HTMLElement,
+    slideWidth: number,
+    slideHeight: number,
 ) {
-    const blob = await captureElement(slideElement, {
-        pixelRatio: 0.4, // thumbnail resolution
-        backgroundColor: "#ffffff",
+    const canvas = await renderSlideToCanvas(
+        slideElement,
+        slideWidth,
+        slideHeight,
+        0.4, // scale for thumbnail resolution
+    );
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+            (blob) => {
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error("Failed to convert canvas to blob"));
+                }
+            },
+            "image/png",
+        );
     });
 
     await editorDB.put("slideThumbnails", {
